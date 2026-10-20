@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="五十音">
+<title>五十音練習</title>
+<style>
+:root {
+  --paper: #F7F8F5; --surface: #FFFFFF; --ink: #1A1D24; --muted: #6A7180; --line: #DADDE3;
+  --ai: #24426B; --ai-soft: #E3E9F2; --ok: #4F7A2C; --ok-soft: #E6EFDC;
+  --ng: #B8322A; --ng-soft: #F6E1DF; --on-ai: #FFFFFF;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #10141C; --surface: #18202C; --ink: #E9ECF2; --muted: #97A0B0; --line: #2C3646;
+    --ai: #8FB0DE; --ai-soft: #22324A; --ok: #9CC877; --ok-soft: #233320;
+    --ng: #EE8A80; --ng-soft: #3A2220; --on-ai: #10141C;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: -apple-system, "PingFang TC", "Noto Sans TC", "Hiragino Sans", sans-serif;
+  font-size: 16px; line-height: 1.5;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+.kana-font { font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 20px 18px 40px; }
+header h1 { font-size: 20px; margin: 0 0 14px; font-weight: 600; }
+
+.lessons { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; scrollbar-width: none; }
+.lessons::-webkit-scrollbar { display: none; }
+.lessons button {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: 10px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  font-size: 15px; cursor: pointer;
+}
+.lessons button[aria-pressed="true"] { background: var(--ai); border-color: var(--ai); color: var(--on-ai); }
+
+.learned { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 16px; }
+.learned span { width: 30px; height: 30px; display: grid; place-items: center; font-size: 18px; border-radius: 6px; color: var(--muted); }
+.learned span.new { color: var(--ai); background: var(--ai-soft); }
+
+.tabs { display: flex; border-bottom: 1.5px solid var(--line); margin-bottom: 22px; }
+.tabs button {
+  flex: 1; background: none; border: none; color: var(--muted);
+  padding: 10px 0 12px; font-size: 14px; cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -1.5px;
+}
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ai); font-weight: 600; }
+button:focus-visible { outline: 3px solid var(--ai); outline-offset: 2px; }
+
+.panel[hidden] { display: none; }
+.hint { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+.score { color: var(--muted); font-size: 14px; text-align: center; margin-top: 18px; }
+
+.play {
+  display: flex; align-items: center; justify-content: center;
+  width: 120px; height: 120px; margin: 4px auto 26px; border-radius: 50%;
+  border: none; background: var(--ai); color: var(--on-ai); cursor: pointer;
+}
+.play svg { width: 48px; height: 48px; }
+
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.choices button {
+  height: 92px; font-size: 48px; border-radius: 14px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  transition: background .15s, border-color .15s;
+}
+.choices button.ok { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.choices button.ng { background: var(--ng-soft); border-color: var(--ng); color: var(--ng); }
+.feedback { min-height: 26px; text-align: center; margin-top: 14px; font-size: 15px; }
+.feedback.ok { color: var(--ok); }
+.feedback.ng { color: var(--ng); }
+
+.card { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; text-align: center; padding: 28px 16px 22px; margin-bottom: 16px; }
+.big { font-size: 140px; line-height: 1.1; }
+.bigword { font-size: 64px; line-height: 1.2; }
+.romaji { min-height: 34px; font-size: 24px; color: var(--ai); letter-spacing: .05em; }
+.sub { min-height: 26px; color: var(--muted); font-size: 16px; }
+.hide { visibility: hidden; }
+.row { display: flex; gap: 10px; margin-bottom: 10px; }
+.btn {
+  flex: 1; padding: 14px 0; border-radius: 12px; font-size: 16px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.btn.primary { background: var(--ai); border-color: var(--ai); color: var(--on-ai); }
+.btn.good { border-color: var(--ok); color: var(--ok); }
+.btn.bad { border-color: var(--ng); color: var(--ng); }
+.btn.mic.listening { background: var(--ng); border-color: var(--ng); color: #fff; }
+.btn[disabled] { opacity: .5; }
+
+.toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 15px; }
+.toggle input { width: 20px; height: 20px; accent-color: var(--ai); }
+.words { display: flex; flex-direction: column; gap: 10px; }
+.group-title { font-size: 14px; color: var(--muted); margin: 18px 0 2px; }
+.word {
+  display: flex; align-items: center; gap: 14px; text-align: left; width: 100%;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px;
+  padding: 12px 14px; color: var(--ink); cursor: pointer; font: inherit;
+}
+.word .jp { font-size: 28px; min-width: 120px; }
+.word .info { flex: 1; }
+.word .kanji { color: var(--muted); font-size: 14px; }
+.word .mean { font-size: 16px; }
+.word.covered .mean, .word.covered .kanji { filter: blur(6px); opacity: .5; }
+.word svg { width: 22px; height: 22px; color: var(--ai); flex-shrink: 0; }
+.notice { background: var(--ng-soft); color: var(--ng); padding: 10px 12px; border-radius: 10px; font-size: 14px; margin-bottom: 16px; }
+.empty { color: var(--muted); text-align: center; padding: 24px 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>五十音練習</h1>
+    <div class="lessons" id="lessons"></div>
+    <div class="learned kana-font" id="learned" aria-label="已學過的字"></div>
+  </header>
+
+  <div id="voiceNotice" class="notice" hidden>找不到日文語音。請到 iPhone「設定 → 輔助使用 → 朗讀內容 → 聲音 → 日文」下載語音（建議選「增強品質」版本）。</div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="listen">聽音選字</button>
+    <button role="tab" aria-selected="false" data-tab="read">看字念音</button>
+    <button role="tab" aria-selected="false" data-tab="words">本課單字</button>
+    <button role="tab" aria-selected="false" data-tab="bank">單字庫</button>
+  </nav>
+
+  <!-- 聽音選字 -->
+  <section class="panel" id="listen">
+    <p class="hint">按下播放，聽完後點選正確的字。</p>
+    <button class="play" id="playBtn" aria-label="播放讀音">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+    </button>
+    <div class="choices kana-font" id="choices"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="score" id="listenScore"></div>
+  </section>
+
+  <!-- 看字念音 -->
+  <section class="panel" id="read" hidden>
+    <p class="hint">按「我來念」對著手機念出這個字，或自己念完再看答案。</p>
+    <div class="card">
+      <div class="big kana-font" id="readKana"></div>
+      <div class="romaji hide" id="readRomaji"></div>
+      <div class="feedback" id="readFeedback" aria-live="polite"></div>
+    </div>
+    <div class="row" id="readActions"></div>
+    <div class="score" id="readScore"></div>
+  </section>
+
+  <!-- 本課單字 -->
+  <section class="panel" id="words" hidden>
+    <label class="toggle">遮住字義（點一下單字顯示）<input type="checkbox" class="coverToggle"></label>
+    <div class="words" id="wordList"></div>
+  </section>
+
+  <!-- 單字庫 -->
+  <section class="panel" id="bank" hidden>
+    <div id="bankList">
+      <div class="row"><button class="btn primary" id="startReview">隨機複習</button></div>
+      <label class="toggle">遮住字義（點一下單字顯示）<input type="checkbox" class="coverToggle"></label>
+      <div class="words" id="bankWords"></div>
+    </div>
+    <div id="reviewBox" hidden>
+      <div class="card">
+        <div class="bigword kana-font" id="revWord"></div>
+        <div class="sub hide" id="revKanji"></div>
+        <div class="romaji hide" id="revMean"></div>
+      </div>
+      <div class="row" id="revActions"></div>
+      <div class="row"><button class="btn" id="endReview">回到單字列表</button></div>
+      <div class="score" id="revScore"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+// ===== 課程：每五字一課 =====
+const KANA = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+const LESSONS = [];
+for (let i = 0; i < KANA.length; i += 5) LESSONS.push([...KANA.slice(i, i + 5)]);
+
+const ROMAJI = {
+  あ:"a", い:"i", う:"u", え:"e", お:"o", か:"ka", き:"ki", く:"ku", け:"ke", こ:"ko",
+  さ:"sa", し:"shi", す:"su", せ:"se", そ:"so", た:"ta", ち:"chi", つ:"tsu", て:"te", と:"to",
+  な:"na", に:"ni", ぬ:"nu", ね:"ne", の:"no", は:"ha", ひ:"hi", ふ:"fu", へ:"he", ほ:"ho",
+  ま:"ma", み:"mi", む:"mu", め:"me", も:"mo", や:"ya", ゆ:"yu", よ:"yo", ら:"ra", り:"ri",
+  る:"ru", れ:"re", ろ:"ro", わ:"wa", を:"o（wo）", ん:"n",
+};
+const SAME_SOUND = { お: "を", を: "お" };   // 發音相同，不會同時出現在選項
+
+// ===== 單字：[假名, 漢字, 中文, 朗讀用寫法(可省略)] =====
+// 以初級常用字為主，只用已學過的平假名組成；朗讀時用漢字讓語調更準確
+const WORDS = [
+  ["いえ","家","家、房子"], ["うえ","上","上面"], ["あおい","青い","藍色的","青い"],
+  ["いう","言う","說","言う"], ["あう","会う","見面","会う"], ["おおい","多い","很多的","多い"], ["あい","愛","愛"],
+  ["ここ","此処","這裡"], ["いく","行く","去","行く"], ["かう","買う","買","買う"], ["きく","聞く","聽、問","聞く"],
+  ["かく","書く","寫","書く"], ["えき","駅","車站","駅"], ["おおきい","大きい","大的","大きい"],
+  ["あかい","赤い","紅色的","赤い"], ["かお","顔","臉","顔"], ["こえ","声","聲音","声"],
+  ["すこし","少し","一點點","少し"], ["あさ","朝","早上","朝"], ["すき","好き","喜歡","好き"],
+  ["そこ","其処","那裡"], ["あそこ","彼処","那邊（較遠）"], ["おいしい","美味しい","好吃的","美味しい"],
+  ["いす","椅子","椅子","椅子"], ["かさ","傘","雨傘","傘"], ["あし","足","腳","足"], ["すし","寿司","壽司","寿司"],
+  ["ちいさい","小さい","小的","小さい"], ["たかい","高い","高的、貴的","高い"], ["ちかい","近い","近的","近い"],
+  ["あたらしい","新しい","新的","新しい"], ["あつい","暑い","熱的（天氣）","暑い"], ["いつ","何時","什麼時候"],
+  ["そと","外","外面","外"], ["くつ","靴","鞋子","靴"], ["した","下","下面"], ["て","手","手","手"], ["くち","口","嘴巴","口"],
+  ["なに","何","什麼"], ["あなた","貴方","你"], ["この","此の","這個～"], ["その","其の","那個～"],
+  ["あの","彼の","那個～（較遠）"], ["いぬ","犬","狗","犬"], ["ねこ","猫","貓","猫"],
+  ["なつ","夏","夏天","夏"], ["おかね","お金","錢","お金"], ["きのう","昨日","昨天","昨日"],
+  ["ひと","人","人","人"], ["はい","はい","是、好的"], ["ひとつ","一つ","一個","一つ"], ["ふたつ","二つ","兩個","二つ"],
+  ["はなす","話す","說話","話す"], ["はは","母","（自己的）媽媽","母"], ["はな","花","花","花"],
+  ["ほし","星","星星","星"], ["ふく","服","衣服","服"], ["ひこうき","飛行機","飛機","飛行機"],
+  ["いま","今","現在","今"], ["まえ","前","前面","前"], ["なまえ","名前","名字","名前"],
+  ["みせ","店","商店","店"], ["あめ","雨","雨","雨"], ["め","目","眼睛","目"], ["あたま","頭","頭","頭"],
+  ["さむい","寒い","冷的（天氣）","寒い"], ["うみ","海","海","海"], ["もの","物","東西"],
+  ["やま","山","山","山"], ["やすい","安い","便宜的","安い"], ["よむ","読む","讀","読む"], ["ゆき","雪","雪","雪"],
+  ["へや","部屋","房間","部屋"], ["やさい","野菜","蔬菜","野菜"], ["とり","鳥","鳥","鳥"],
+  ["くすり","薬","藥","薬"], ["そら","空","天空"],
+  ["わたし","私","我"], ["これ","此れ","這個"], ["それ","其れ","那個"], ["ある","有る","有（物品）"],
+  ["いる","居る","有、在（人或動物）"], ["する","為る","做"], ["くる","来る","來","来る"],
+  ["みる","見る","看","見る"], ["わかる","分かる","懂、知道","分かる"], ["おもしろい","面白い","有趣的","面白い"],
+  ["ほん","本","書","本"], ["せんせい","先生","老師","先生"], ["にほん","日本","日本"], ["みんな","皆","大家"],
+  ["たくさん","沢山","很多"], ["てんき","天気","天氣","天気"], ["ほんとう","本当","真的","本当"],
+  ["おんな","女","女性","女"], ["なん","何","什麼（接某些字前）"],
+];
+const lessonOf = w => Math.max(...[...w].map(c => Math.floor(KANA.indexOf(c) / 5)));
+const WORD_LESSON = LESSONS.map(() => []);
+WORDS.forEach(item => {
+  const [w] = item;
+  if (![...w].every(c => KANA.includes(c))) return;      // 含未教的字（濁音等）就跳過
+  const l = lessonOf(w);
+  if (WORD_LESSON[l].length < 10) WORD_LESSON[l].push(item);   // 每課最多 10 個
+});
+
+// ===== 語音 =====
+let jaVoice = null;
+function loadVoice() {
+  const voices = speechSynthesis.getVoices().filter(v => v.lang.replace("_", "-").startsWith("ja"));
+  // 優先使用增強品質語音，聽起來較自然
+  jaVoice = voices.find(v => /enhanced|premium|增強|高品質/i.test(v.name)) || voices[0] || null;
+  document.getElementById("voiceNotice").hidden = !!jaVoice || speechSynthesis.getVoices().length === 0;
+}
+if ("speechSynthesis" in window) { loadVoice(); speechSynthesis.onvoiceschanged = loadVoice; }
+function speak(text, rate = 0.9) {
+  if (!("speechSynthesis" in window)) return;
+  clearTimeout(kanaTimer);
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "ja-JP";
+  if (jaVoice) u.voice = jaVoice;
+  u.rate = rate;
+  speechSynthesis.speak(u);
+}
+// 單音：用正常念法慢速念兩次，中間間隔一秒
+let kanaTimer = null;
+function kanaUtter(k) {
+  const u = new SpeechSynthesisUtterance(k);
+  u.lang = "ja-JP";
+  if (jaVoice) u.voice = jaVoice;
+  u.rate = 0.7;
+  return u;
+}
+function speakKana(k) {
+  if (!("speechSynthesis" in window)) return;
+  clearTimeout(kanaTimer);
+  speechSynthesis.cancel();
+  const first = kanaUtter(k);
+  first.onend = () => { kanaTimer = setTimeout(() => speechSynthesis.speak(kanaUtter(k)), 1000); };
+  speechSynthesis.speak(first);
+}
+// 單字：放慢速度；結尾加「。」讓語音照完整句子的語氣自然收尾，不會突然切斷；
+// 先停一下再念，避免 iPhone 把開頭第一個音吃掉
+function speakWord(item) {
+  if (!("speechSynthesis" in window)) return;
+  clearTimeout(kanaTimer);
+  speechSynthesis.cancel();
+  kanaTimer = setTimeout(() => {
+    const u = new SpeechSynthesisUtterance((item[3] || item[0]) + "。");
+    u.lang = "ja-JP";
+    if (jaVoice) u.voice = jaVoice;
+    u.rate = 0.6;
+    speechSynthesis.speak(u);
+  }, 150);
+}
+
+// ===== 共用 =====
+let lesson = 0;
+const learned = () => LESSONS.slice(0, lesson + 1).flat();
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function pickNew(pool, last) {
+  if (pool.length < 2) return pool[0];
+  let k; do { k = pool[Math.floor(Math.random() * pool.length)]; } while (k === last);
+  return k;
+}
+const speakerSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg>';
+
+// ===== 課程選單 =====
+const lessonsEl = document.getElementById("lessons");
+LESSONS.forEach((_, i) => {
+  const b = document.createElement("button");
+  b.textContent = `第${i + 1}課`;
+  b.onclick = () => setLesson(i);
+  lessonsEl.appendChild(b);
+});
+function setLesson(i) {
+  lesson = i;
+  [...lessonsEl.children].forEach((b, j) => b.setAttribute("aria-pressed", j === i));
+  const el = document.getElementById("learned");
+  el.innerHTML = "";
+  learned().forEach(k => {
+    const s = document.createElement("span");
+    s.textContent = k;
+    if (LESSONS[lesson].includes(k)) s.className = "new";
+    el.appendChild(s);
+  });
+  listenStats = { ok: 0, total: 0 };
+  readStats = { ok: 0, total: 0 };
+  newListen(false);
+  newRead();
+  renderWords();
+  renderBank();
+  endReview();
+}
+
+// ===== 分頁 =====
+document.querySelectorAll(".tabs button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+    document.querySelectorAll(".panel").forEach(p => p.hidden = p.id !== b.dataset.tab);
+  };
+});
+
+// ===== 聽音選字 =====
+let listenAnswer = null, listenLocked = false, listenStats = { ok: 0, total: 0 }, firstTry = true;
+const choicesEl = document.getElementById("choices");
+const feedbackEl = document.getElementById("feedback");
+document.getElementById("playBtn").onclick = () => speakKana(listenAnswer);
+
+function newListen(autoplay = true) {
+  const pool = learned();
+  listenAnswer = pickNew(pool, listenAnswer);
+  const others = shuffle(pool.filter(k => k !== listenAnswer && k !== SAME_SOUND[listenAnswer])).slice(0, 3);
+  const opts = shuffle([listenAnswer, ...others]);
+  choicesEl.innerHTML = "";
+  feedbackEl.textContent = ""; feedbackEl.className = "feedback";
+  listenLocked = false; firstTry = true;
+  opts.forEach(k => {
+    const b = document.createElement("button");
+    b.textContent = k;
+    b.onclick = () => chooseListen(b, k);
+    choicesEl.appendChild(b);
+  });
+  updateListenScore();
+  if (autoplay) setTimeout(() => speakKana(listenAnswer), 250);
+}
+function chooseListen(btn, k) {
+  if (listenLocked) return;
+  if (k === listenAnswer) {
+    listenLocked = true;
+    btn.classList.add("ok");
+    if (firstTry) listenStats.ok++;
+    listenStats.total++;
+    feedbackEl.textContent = `答對了！${k}（${ROMAJI[k]}）`;
+    feedbackEl.className = "feedback ok";
+    updateListenScore();
+    setTimeout(newListen, 1300);
+  } else {
+    btn.classList.add("ng");
+    firstTry = false;
+    feedbackEl.textContent = `這是 ${k}（${ROMAJI[k]}），再聽一次`;
+    feedbackEl.className = "feedback ng";
+    speakKana(listenAnswer);
+  }
+}
+function updateListenScore() {
+  document.getElementById("listenScore").textContent = listenStats.total ? `一次答對 ${listenStats.ok} / ${listenStats.total} 題` : "";
+}
+
+// ===== 看字念音（含語音辨識）=====
+// 辨識單一個音時，手機常會寫成同音的漢字，所以列出常見同音字一起比對
+const HOMOPHONES = {
+  あ:"亜阿", い:"胃井医意易", う:"鵜卯", え:"絵江柄餌", お:"尾緒御をオ",
+  か:"蚊化課可科下家", き:"木気黄期機器", く:"九区句苦9", け:"毛気家化", こ:"子個粉戸湖故古",
+  さ:"差佐左砂", し:"四市死詩氏師4", す:"巣酢素州", せ:"背瀬世", そ:"祖素曽",
+  た:"田他多", ち:"血地知千値", つ:"津都通", て:"手", と:"戸都斗十",
+  な:"名菜那", に:"二荷似煮2", ぬ:"奴", ね:"根値音寝", の:"野乃之",
+  は:"葉歯刃派波", ひ:"日火比非灯", ふ:"府符譜不負婦", へ:"屁辺", ほ:"帆穂歩保",
+  ま:"間真魔馬", み:"実身三見味3", む:"無六夢", め:"目芽女", も:"藻喪茂",
+  や:"矢屋夜野", ゆ:"湯由", よ:"世夜四代予余", ら:"羅等", り:"理利里李",
+  る:"留流", れ:"例礼", ろ:"炉路呂", わ:"輪和環", を:"お尾緒御オ", ん:"ン",
+};
+const toHira = s => s.replace(/[\u30a1-\u30f6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+function heardMatches(text, kana) {
+  const t = toHira(text).replace(/[\sー。、！？!?.,~〜]/g, "").toLowerCase();
+  if (!t) return false;
+  if ([...t].every(c => c === kana || c === SAME_SOUND[kana])) return true;    // 「か」「かか」
+  if ([...t].every(c => (HOMOPHONES[kana] || "").includes(c))) return true;   // 「蚊」「木」
+  const r = ROMAJI[kana].split("（")[0];
+  return t === r || t === r.repeat(2);
+}
+
+const Recog = window.SpeechRecognition || window.webkitSpeechRecognition;
+let readKana = null, readStats = { ok: 0, total: 0 }, recog = null;
+const readActions = document.getElementById("readActions");
+const romajiEl = document.getElementById("readRomaji");
+const readFb = document.getElementById("readFeedback");
+const mkBtn = (parent, text, cls, fn) => { const b = document.createElement("button"); b.className = "btn " + cls; b.textContent = text; b.onclick = fn; parent.appendChild(b); return b; };
+
+function newRead() {
+  if (recog) { try { recog.abort(); } catch (e) {} recog = null; }
+  readKana = pickNew(learned(), readKana);
+  document.getElementById("readKana").textContent = readKana;
+  romajiEl.textContent = ROMAJI[readKana];
+  romajiEl.classList.add("hide");
+  readFb.textContent = ""; readFb.className = "feedback";
+  readActions.innerHTML = "";
+  if (Recog) mkBtn(readActions, "我來念", "mic primary", e => listenToMe(e.currentTarget));
+  mkBtn(readActions, "看答案", Recog ? "" : "primary", revealRead);
+  updateReadScore();
+}
+function listenToMe(btn) {
+  if (recog) return;
+  recog = new Recog();
+  recog.lang = "ja-JP";
+  recog.interimResults = false;
+  recog.maxAlternatives = 5;
+  btn.classList.add("listening");
+  btn.textContent = "請念…";
+  readFb.textContent = ""; readFb.className = "feedback";
+  let got = false;
+  recog.onresult = ev => {
+    got = true;
+    const heard = [];
+    for (const res of ev.results) for (const alt of res) heard.push(alt.transcript.trim());
+    const ok = heard.some(h => heardMatches(h, readKana));
+    readFb.textContent = ok ? `念對了！（聽到：${heard[0]}）` : `聽到的是「${heard[0] || "？"}」，再試一次`;
+    readFb.className = "feedback " + (ok ? "ok" : "ng");
+    if (ok) { readStats.ok++; readStats.total++; revealRead(true); }
+  };
+  recog.onerror = ev => {
+    got = true;
+    readFb.className = "feedback ng";
+    readFb.textContent = ev.error === "not-allowed" || ev.error === "service-not-allowed"
+      ? "沒有麥克風權限。請允許 Safari 使用麥克風，並確認已開啟「Siri 與聽寫」。"
+      : "沒聽清楚，再按一次「我來念」試試。";
+  };
+  recog.onend = () => {
+    recog = null;
+    btn.classList.remove("listening");
+    btn.textContent = "我來念";
+    if (!got) { readFb.textContent = "沒聽到聲音，再按一次試試。"; readFb.className = "feedback ng"; }
+  };
+  try { recog.start(); } catch (e) { recog = null; }
+}
+function revealRead(autoScored = false) {
+  romajiEl.classList.remove("hide");
+  speakKana(readKana);
+  readActions.innerHTML = "";
+  mkBtn(readActions, "再聽一次", "", () => speakKana(readKana));
+  if (autoScored === true) {
+    mkBtn(readActions, "下一個", "primary", newRead);
+  } else {
+    mkBtn(readActions, "念錯了", "bad", () => { readStats.total++; newRead(); });
+    mkBtn(readActions, "念對了", "good", () => { readStats.ok++; readStats.total++; newRead(); });
+  }
+  updateReadScore();
+}
+function updateReadScore() {
+  document.getElementById("readScore").textContent = readStats.total ? `念對 ${readStats.ok} / ${readStats.total} 個` : "";
+}
+
+// ===== 單字卡片 =====
+let covered = false;
+document.querySelectorAll(".coverToggle").forEach(t => t.onchange = () => {
+  covered = t.checked;
+  document.querySelectorAll(".coverToggle").forEach(x => x.checked = covered);
+  renderWords(); renderBank();
+});
+function wordCard(item) {
+  const [w, kanji, mean] = item;
+  const b = document.createElement("button");
+  b.className = "word" + (covered ? " covered" : "");
+  b.innerHTML = `<span class="jp kana-font">${w}</span>
+    <span class="info"><div class="kanji">${kanji}</div><div class="mean">${mean}</div></span>${speakerSvg}`;
+  b.onclick = () => { b.classList.remove("covered"); speakWord(item); };
+  return b;
+}
+function renderWords() {
+  const el = document.getElementById("wordList");
+  el.innerHTML = "";
+  const list = WORD_LESSON[lesson];
+  if (!list.length) { el.innerHTML = '<div class="empty">這一課沒有新單字</div>'; return; }
+  list.forEach(item => el.appendChild(wordCard(item)));
+}
+function renderBank() {
+  const el = document.getElementById("bankWords");
+  el.innerHTML = "";
+  for (let i = 0; i <= lesson; i++) {
+    if (!WORD_LESSON[i].length) continue;
+    const h = document.createElement("div");
+    h.className = "group-title";
+    h.textContent = `第${i + 1}課（${LESSONS[i].join("")}）`;
+    el.appendChild(h);
+    WORD_LESSON[i].forEach(item => el.appendChild(wordCard(item)));
+  }
+}
+
+// ===== 單字庫：隨機複習 =====
+let revItem = null, revStats = { ok: 0, total: 0 };
+const allLearnedWords = () => WORD_LESSON.slice(0, lesson + 1).flat();
+document.getElementById("startReview").onclick = () => {
+  revStats = { ok: 0, total: 0 };
+  document.getElementById("bankList").hidden = true;
+  document.getElementById("reviewBox").hidden = false;
+  nextReview();
+};
+document.getElementById("endReview").onclick = endReview;
+function endReview() {
+  document.getElementById("bankList").hidden = false;
+  document.getElementById("reviewBox").hidden = true;
+}
+function nextReview() {
+  revItem = pickNew(allLearnedWords(), revItem);
+  document.getElementById("revWord").textContent = revItem[0];
+  document.getElementById("revKanji").textContent = revItem[1];
+  document.getElementById("revMean").textContent = revItem[2];
+  document.getElementById("revKanji").classList.add("hide");
+  document.getElementById("revMean").classList.add("hide");
+  const box = document.getElementById("revActions");
+  box.innerHTML = "";
+  mkBtn(box, "聽發音", "", () => speakWord(revItem));
+  mkBtn(box, "看意思", "primary", () => {
+    document.getElementById("revKanji").classList.remove("hide");
+    document.getElementById("revMean").classList.remove("hide");
+    speakWord(revItem);
+    box.innerHTML = "";
+    mkBtn(box, "不記得", "bad", () => { revStats.total++; nextReview(); });
+    mkBtn(box, "記得", "good", () => { revStats.ok++; revStats.total++; nextReview(); });
+  });
+  document.getElementById("revScore").textContent = revStats.total ? `記得 ${revStats.ok} / ${revStats.total} 個` : "";
+}
+
+setLesson(0);
+</script>
+</body>
+</html>
