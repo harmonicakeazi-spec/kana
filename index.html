@@ -5,129 +5,232 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="五十音">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#24426B">
 <title>五十音練習</title>
 <style>
 :root {
-  --paper: #F7F8F5; --surface: #FFFFFF; --ink: #1A1D24; --muted: #6A7180; --line: #DADDE3;
-  --ai: #24426B; --ai-soft: #E3E9F2; --ok: #4F7A2C; --ok-soft: #E6EFDC;
-  --ng: #B8322A; --ng-soft: #F6E1DF; --on-ai: #FFFFFF;
+  --snow: #FAF7F1;      /* 水彩紙般的雪白 */
+  --surface: #FFFDF9;
+  --ice: #EFE9E0;       /* 暖霧 */
+  --ink: #2D2A2E;       /* 山雀羽毛的墨色 */
+  --muted: #7D7468;
+  --line: #E4DCD0;
+  --ai: #3F6189;        /* 畫中淡藍天空的深色 */
+  --ai-soft: #E6ECF2;
+  --berry: #B4493C;     /* 冬天的果實：音調線、錯誤 */
+  --berry-soft: #F6E4DF;
+  --pine: #4E7A55;      /* 正確 */
+  --pine-soft: #E4EEE2;
+  --wing: #C49A8C;
+  --on-ai: #FFFFFF;
+  --chip: rgba(255, 253, 249, .78);
+  --veil: rgba(250, 247, 241, 0);
+  --ok: var(--pine); --ok-soft: var(--pine-soft); --ng: var(--berry); --ng-soft: var(--berry-soft);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #10141C; --surface: #18202C; --ink: #E9ECF2; --muted: #97A0B0; --line: #2C3646;
-    --ai: #8FB0DE; --ai-soft: #22324A; --ok: #9CC877; --ok-soft: #233320;
-    --ng: #EE8A80; --ng-soft: #3A2220; --on-ai: #10141C;
+    --snow: #1A1715; --surface: #24201D; --ice: #2D2824; --ink: #F1ECE4; --muted: #A89E92;
+    --line: #3A332D; --ai: #9DB8D6; --ai-soft: #2A3442; --berry: #EE958A; --berry-soft: #3B2724;
+    --pine: #9CC79F; --pine-soft: #24322A; --wing: #D2AE9F; --on-ai: #1A1715;
+    --chip: rgba(36, 32, 29, .8);
+    --veil: rgba(26, 23, 21, .5);
+    --bird-dim: brightness(.56) saturate(.9);
     color-scheme: dark;
   }
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; }
 body {
-  background: var(--paper); color: var(--ink);
+  background: var(--snow); color: var(--ink);
   font-family: -apple-system, "PingFang TC", "Noto Sans TC", "Hiragino Sans", sans-serif;
   font-size: 16px; line-height: 1.5;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
-.kana-font { font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; }
-.wrap { max-width: 520px; margin: 0 auto; padding: 20px 18px 40px; }
-header h1 { font-size: 20px; margin: 0 0 14px; font-weight: 600; }
-
-.lessons { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; scrollbar-width: none; }
-.lessons::-webkit-scrollbar { display: none; }
-.lessons button {
-  flex: 0 0 auto; padding: 8px 14px; border-radius: 10px;
-  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-  font-size: 15px; cursor: pointer;
-}
-.lessons button[aria-pressed="true"] { background: var(--ai); border-color: var(--ai); color: var(--on-ai); }
-
-.learned { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 16px; }
-.learned span { width: 30px; height: 30px; display: grid; place-items: center; font-size: 18px; border-radius: 6px; color: var(--muted); }
-.learned span.new { color: var(--ai); background: var(--ai-soft); }
-
-.tabs { display: flex; border-bottom: 1.5px solid var(--line); margin-bottom: 22px; }
-.tabs button {
-  flex: 1; background: none; border: none; color: var(--muted);
-  padding: 10px 0 12px; font-size: 14px; cursor: pointer;
-  border-bottom: 3px solid transparent; margin-bottom: -1.5px;
-}
-.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ai); font-weight: 600; }
+.kana-font { font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", "Noto Serif CJK JP", "Source Han Serif JP", serif; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 0 16px 48px; }
 button:focus-visible { outline: 3px solid var(--ai); outline-offset: 2px; }
 
-.panel[hidden] { display: none; }
-.hint { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
-.score { color: var(--muted); font-size: 14px; text-align: center; margin-top: 18px; }
+/* ---------- 頂部：雪景與吉祥物 ---------- */
+.top {
+  margin: 0 -16px 16px; padding: 18px 16px 14px;
+  background:
+    linear-gradient(var(--veil), var(--veil)),
+    url("data:image/jpeg;base64,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") center 35% / cover;
+  border-radius: 0 0 28px 28px;
+}
+.top h1 {
+  text-shadow: 0 0 12px var(--snow);
+  font-family: "Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", "PingFang TC", sans-serif;
+  font-size: 22px; font-weight: 700; margin: 0; letter-spacing: .04em;
+}
+.perch { display: flex; align-items: center; gap: 12px; margin: 10px 0 14px; }
+.mascot { width: 150px; flex-shrink: 0; }
+.mascot img {
+  width: 100%; height: auto; display: block;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent), linear-gradient(transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent), linear-gradient(transparent, #000 8%, #000 92%, transparent);
+  mask-composite: intersect;
+  filter: var(--bird-dim, none);
+}
+.mascot.hop { animation: hop .45s ease-out; }
+.mascot.shake { animation: shake .4s ease-in-out; }
+@keyframes shake { 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
+@keyframes hop { 30% { transform: translateY(-10px); } 60% { transform: translateY(0); } 80% { transform: translateY(-3px); } }
+.bubble {
+  position: relative; flex: 1; background: var(--chip); border-radius: 18px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  padding: 10px 14px; font-size: 15px; min-height: 44px;
+}
+.bubble::before {
+  content: ""; position: absolute; left: -7px; top: 50%; margin-top: -8px;
+  border: 8px solid transparent; border-right-color: var(--chip); border-left: 0;
+}
 
+.lessons { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 10px; scrollbar-width: none; }
+.lessons::-webkit-scrollbar { display: none; }
+.lessons button {
+  flex: 0 0 auto; padding: 7px 14px; border-radius: 999px;
+  border: none; background: var(--chip); color: var(--ink); font-size: 14px; cursor: pointer;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.lessons button[aria-pressed="true"] { background: var(--ai); color: var(--on-ai); }
+
+.learned { display: flex; flex-wrap: wrap; gap: 2px; }
+.learned span { width: 28px; height: 28px; display: grid; place-items: center; font-size: 17px; border-radius: 8px; color: var(--ink); opacity: .6; text-shadow: 0 0 8px var(--snow); }
+.learned span.new { color: var(--ai); background: var(--chip); font-weight: 600; opacity: 1; text-shadow: none; }
+
+/* ---------- 分頁 ---------- */
+.tabs { display: flex; gap: 4px; background: var(--ice); padding: 4px; border-radius: 14px; margin-bottom: 20px; }
+.tabs button {
+  flex: 1; background: none; border: none; color: var(--muted);
+  padding: 8px 0; font-size: 13px; border-radius: 10px; cursor: pointer;
+}
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 600; }
+
+.panel[hidden] { display: none; }
+.hint { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+.score { color: var(--muted); font-size: 14px; text-align: center; margin-top: 16px; }
+.notice { background: var(--berry-soft); color: var(--berry); padding: 10px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 16px; }
+
+/* ---------- 聽音選字 ---------- */
 .play {
   display: flex; align-items: center; justify-content: center;
-  width: 120px; height: 120px; margin: 4px auto 26px; border-radius: 50%;
-  border: none; background: var(--ai); color: var(--on-ai); cursor: pointer;
+  width: 112px; height: 112px; margin: 4px auto 24px; border-radius: 50%;
+  border: 6px solid var(--ice); background: var(--ai); color: var(--on-ai); cursor: pointer;
 }
-.play svg { width: 48px; height: 48px; }
-
-.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.play svg { width: 44px; height: 44px; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choices button {
-  height: 92px; font-size: 48px; border-radius: 14px; cursor: pointer;
-  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  height: 92px; font-size: 48px; border-radius: 18px; cursor: pointer;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink);
   transition: background .15s, border-color .15s;
 }
 .choices button.ok { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
 .choices button.ng { background: var(--ng-soft); border-color: var(--ng); color: var(--ng); }
-.feedback { min-height: 26px; text-align: center; margin-top: 14px; font-size: 15px; }
+.feedback { min-height: 26px; text-align: center; margin-top: 12px; font-size: 15px; }
 .feedback.ok { color: var(--ok); }
 .feedback.ng { color: var(--ng); }
 
-.card { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; text-align: center; padding: 28px 16px 22px; margin-bottom: 16px; }
-.big { font-size: 140px; line-height: 1.1; }
-.bigword { font-size: 64px; line-height: 1.2; }
-.romaji { min-height: 34px; font-size: 24px; color: var(--ai); letter-spacing: .05em; }
+/* ---------- 卡片與按鈕 ---------- */
+.card { background: var(--surface); border: 2px solid var(--line); border-radius: 24px; text-align: center; padding: 26px 16px 20px; margin-bottom: 14px; }
+.big { font-size: 136px; line-height: 1.1; }
+.bigword { font-size: 60px; line-height: 1.3; }
+.romaji { min-height: 34px; font-size: 22px; color: var(--ai); letter-spacing: .05em; }
 .sub { min-height: 26px; color: var(--muted); font-size: 16px; }
 .hide { visibility: hidden; }
 .row { display: flex; gap: 10px; margin-bottom: 10px; }
 .btn {
-  flex: 1; padding: 14px 0; border-radius: 12px; font-size: 16px; cursor: pointer;
-  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  flex: 1; padding: 14px 0; border-radius: 14px; font-size: 16px; cursor: pointer;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink);
 }
 .btn.primary { background: var(--ai); border-color: var(--ai); color: var(--on-ai); }
 .btn.good { border-color: var(--ok); color: var(--ok); }
 .btn.bad { border-color: var(--ng); color: var(--ng); }
-.btn.mic.listening { background: var(--ng); border-color: var(--ng); color: #fff; }
-.btn[disabled] { opacity: .5; }
+.btn.mic.listening { background: var(--berry); border-color: var(--berry); color: #fff; }
+.btn[disabled] { opacity: .45; }
 
+/* ---------- 單字 ---------- */
 .toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 15px; }
 .toggle input { width: 20px; height: 20px; accent-color: var(--ai); }
-.words { display: flex; flex-direction: column; gap: 10px; }
+.words { display: flex; flex-direction: column; gap: 8px; }
 .group-title { font-size: 14px; color: var(--muted); margin: 18px 0 2px; }
 .word {
   display: flex; align-items: center; gap: 14px; text-align: left; width: 100%;
-  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px;
+  background: var(--surface); border: 2px solid var(--line); border-radius: 16px;
   padding: 12px 14px; color: var(--ink); cursor: pointer; font: inherit;
 }
 .word .jp { font-size: 28px; min-width: 120px; }
 .word .info { flex: 1; }
 .word .kanji { color: var(--muted); font-size: 14px; }
 .word .mean { font-size: 16px; }
+.word .ro { color: var(--ai); font-size: 14px; letter-spacing: .03em; }
 .word.covered .mean, .word.covered .kanji { filter: blur(6px); opacity: .5; }
 .word svg { width: 22px; height: 22px; color: var(--ai); flex-shrink: 0; }
-.notice { background: var(--ng-soft); color: var(--ng); padding: 10px 12px; border-radius: 10px; font-size: 14px; margin-bottom: 16px; }
+.m { display: inline-block; position: relative; padding-top: 4px; border-top: 2px solid transparent; }
+.m.h { border-top-color: var(--berry); }
+.m.d::after { content: ""; position: absolute; right: -1px; top: -2px; height: 40%; border-right: 2px solid var(--berry); }
+.legend .m { padding-top: 2px; }
+.addform { text-align: left; padding: 18px 16px 16px; }
+.addform[hidden] { display: none; }
+.addform label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+.addform input {
+  display: block; width: 100%; margin-top: 4px; padding: 11px 12px; font-size: 17px;
+  border: 2px solid var(--line); border-radius: 12px; background: var(--snow); color: var(--ink);
+}
+.addform input:focus { outline: none; border-color: var(--ai); }
+.addform .feedback { margin: 0 0 10px; min-height: 0; text-align: left; }
+.dict-hint { margin: -4px 0 12px; font-size: 14px; color: var(--muted); }
+.dict-hint:empty { display: none; }
+.cands { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.cands button {
+  border: 2px solid var(--line); background: var(--snow); color: var(--ink);
+  border-radius: 12px; padding: 7px 12px; font-size: 15px; cursor: pointer; text-align: left;
+}
+.cands button b { font-weight: 600; margin-right: 6px; }
+.cands button[aria-pressed="true"] { border-color: var(--ai); background: var(--ai-soft); }
+.mine { display: flex; gap: 8px; align-items: stretch; }
+.mine .word { flex: 1; }
+.del { flex: 0 0 48px; border: 2px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--berry); font-size: 20px; cursor: pointer; }
 .empty { color: var(--muted); text-align: center; padding: 24px 0; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ---------- 聽寫 ---------- */
+.dict-count { font-size: 56px; font-weight: 600; color: var(--ai); line-height: 1.1; }
+.dict-count small { font-size: 22px; color: var(--muted); font-weight: 400; }
+.dots { display: flex; justify-content: center; gap: 8px; margin: 14px 0; }
+.dots span { width: 12px; height: 12px; border-radius: 50%; background: var(--line); }
+.dots span.done { background: var(--ai); }
+.dots span.now { background: var(--berry); }
+.dict-status { color: var(--muted); font-size: 15px; min-height: 24px; }
+.bar { height: 6px; background: var(--ice); border-radius: 3px; overflow: hidden; margin-top: 12px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--ai); }
+.ans-no { width: 28px; height: 28px; border-radius: 50%; background: var(--ai-soft); color: var(--ai); display: grid; place-items: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
+  <header class="top">
     <h1>五十音練習</h1>
+    <div class="perch">
+      <div class="mascot" id="mascot" aria-hidden="true"></div>
+      <div class="bubble" id="bubble" aria-live="polite"></div>
+    </div>
     <div class="lessons" id="lessons"></div>
-    <div class="learned kana-font" id="learned" aria-label="已學過的字"></div>
+    <div class="learned kana-font" lang="ja" id="learned" aria-label="已學過的字"></div>
   </header>
 
-  <div id="voiceNotice" class="notice" hidden>找不到日文語音。請到 iPhone「設定 → 輔助使用 → 朗讀內容 → 聲音 → 日文」下載語音（建議選「增強品質」版本）。</div>
+  <div id="voiceNotice" class="notice" hidden></div>
 
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="listen">聽音選字</button>
     <button role="tab" aria-selected="false" data-tab="read">看字念音</button>
+    <button role="tab" aria-selected="false" data-tab="dict">聽寫</button>
     <button role="tab" aria-selected="false" data-tab="words">本課單字</button>
     <button role="tab" aria-selected="false" data-tab="bank">單字庫</button>
   </nav>
@@ -138,25 +241,31 @@ button:focus-visible { outline: 3px solid var(--ai); outline-offset: 2px; }
     <button class="play" id="playBtn" aria-label="播放讀音">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
     </button>
-    <div class="choices kana-font" id="choices"></div>
+    <div class="choices kana-font" lang="ja" id="choices"></div>
     <div class="feedback" id="feedback" aria-live="polite"></div>
     <div class="score" id="listenScore"></div>
   </section>
 
   <!-- 看字念音 -->
   <section class="panel" id="read" hidden>
-    <p class="hint">按「我來念」對著手機念出這個字，或自己念完再看答案。</p>
+    <p class="hint">按「我來念」念出這個字，念完會自動停止錄音。不滿意可以重錄，最後按「看答案」看評分。</p>
     <div class="card">
-      <div class="big kana-font" id="readKana"></div>
+      <div class="big kana-font" lang="ja" id="readKana"></div>
       <div class="romaji hide" id="readRomaji"></div>
       <div class="feedback" id="readFeedback" aria-live="polite"></div>
     </div>
-    <div class="row" id="readActions"></div>
+    <div id="readActions"></div>
     <div class="score" id="readScore"></div>
+  </section>
+
+  <!-- 聽寫 -->
+  <section class="panel" id="dict" hidden>
+    <div id="dictBox"></div>
   </section>
 
   <!-- 本課單字 -->
   <section class="panel" id="words" hidden>
+    <p class="hint legend">上方的線＝音調高，線往下折＝音調從那裡降下來。<span class="kana-font" lang="ja"><span class="m h d">は</span><span class="m">し</span></span>（筷子）是高→低，<span class="kana-font" lang="ja"><span class="m">は</span><span class="m h d">し</span></span>（橋）是低→高，後面接的字再降低。</p>
     <label class="toggle">遮住字義（點一下單字顯示）<input type="checkbox" class="coverToggle"></label>
     <div class="words" id="wordList"></div>
   </section>
@@ -165,13 +274,24 @@ button:focus-visible { outline: 3px solid var(--ai); outline-offset: 2px; }
   <section class="panel" id="bank" hidden>
     <div id="bankList">
       <div class="row"><button class="btn primary" id="startReview">隨機複習</button></div>
+      <div class="group-title" style="margin-top:6px">我的單字</div>
+      <div class="words" id="myWords"></div>
+      <div class="row" style="margin-top:8px"><button class="btn" id="addToggle">＋ 加入我的單字</button></div>
+      <div class="card addform" id="addForm" hidden>
+        <label>假名（必填）<input id="inKana" lang="ja" placeholder="例如：ありがとう" autocomplete="off"></label>
+        <div id="dictHint" class="dict-hint" aria-live="polite"></div>
+        <label>漢字（選填）<input id="inKanji" lang="ja" placeholder="例如：有難う" autocomplete="off"></label>
+        <label>中文意思（必填）<input id="inMean" placeholder="例如：謝謝" autocomplete="off"></label>
+        <div class="feedback ng" id="addMsg"></div>
+        <div class="row" style="margin:0"><button class="btn" id="addCancel">取消</button><button class="btn primary" id="addSave">儲存</button></div>
+      </div>
       <label class="toggle">遮住字義（點一下單字顯示）<input type="checkbox" class="coverToggle"></label>
       <div class="words" id="bankWords"></div>
     </div>
     <div id="reviewBox" hidden>
       <div class="card">
-        <div class="bigword kana-font" id="revWord"></div>
-        <div class="sub hide" id="revKanji"></div>
+        <div class="bigword kana-font" lang="ja" id="revWord"></div>
+        <div class="sub hide" lang="ja" id="revKanji"></div>
         <div class="romaji hide" id="revMean"></div>
       </div>
       <div class="row" id="revActions"></div>
@@ -229,6 +349,30 @@ const WORDS = [
   ["たくさん","沢山","很多"], ["てんき","天気","天氣","天気"], ["ほんとう","本当","真的","本当"],
   ["おんな","女","女性","女"], ["なん","何","什麼（接某些字前）"],
 ];
+// 東京標準語的音調（數字 = 音調在第幾拍之後降下；0 = 不降）
+const ACCENT = {
+  いえ:2, うえ:0, あおい:2, いう:0, あう:1, おおい:1, あい:1,
+  ここ:0, いく:0, かう:0, きく:0, かく:1, えき:1, おおきい:3, あかい:0, かお:0, こえ:1,
+  すこし:2, あさ:1, すき:2, そこ:0, あそこ:0, おいしい:0, いす:0, かさ:1, あし:2, すし:2,
+  ちいさい:3, たかい:2, ちかい:2, あつい:2, いつ:1, そと:1, した:0, て:1, くち:0, くつ:2,
+  なに:1, あなた:2, この:0, その:0, あの:0, いぬ:2, ねこ:1, なつ:2, おかね:0, きのう:2,
+  ひと:0, はい:1, ひとつ:2, ふたつ:3, はなす:2, はは:1, はな:2, ほし:0, ふく:2, ひこうき:2,
+  いま:1, まえ:1, なまえ:0, みせ:2, あめ:1, め:1, あたま:3, さむい:2, うみ:1, もの:2,
+  やま:2, やすい:2, よむ:1, ゆき:2, へや:2, やさい:0, とり:0, くすり:0, そら:1, あたらしい:4,
+  わたし:0, これ:0, それ:0, ある:1, いる:0, する:0, くる:1, みる:1, わかる:2, おもしろい:4,
+  ほん:1, せんせい:3, にほん:2, みんな:0, たくさん:0, てんき:1, ほんとう:0, おんな:3, なん:1,
+};
+// 把單字畫成「高的拍上面有線，降下的地方往下折」
+function pitchHTML(w) {
+  const m = [...w], n = ACCENT[w];
+  if (n === undefined) return w;
+  return m.map((c, i) => {
+    const high = n === 0 ? i > 0 || m.length === 1 : (n === 1 ? i === 0 : i > 0 && i < n);
+    const drop = n > 0 && i === n - 1;
+    return `<span class="m${high ? " h" : ""}${drop ? " d" : ""}">${c}</span>`;
+  }).join("");
+}
+
 const lessonOf = w => Math.max(...[...w].map(c => Math.floor(KANA.indexOf(c) / 5)));
 const WORD_LESSON = LESSONS.map(() => []);
 WORDS.forEach(item => {
@@ -237,6 +381,12 @@ WORDS.forEach(item => {
   const l = lessonOf(w);
   if (WORD_LESSON[l].length < 10) WORD_LESSON[l].push(item);   // 每課最多 10 個
 });
+
+// ===== 平台 =====
+const IS_ANDROID = /android/i.test(navigator.userAgent);
+document.getElementById("voiceNotice").textContent = IS_ANDROID
+  ? "找不到日文語音。請到手機「設定 → 搜尋『文字轉語音』→ 慣用引擎選 Google → 安裝語音數據 → 日文」下載語音。"
+  : "找不到日文語音。請到 iPhone「設定 → 輔助使用 → 朗讀內容 → 聲音 → 日文」下載語音（建議選「增強品質」版本）。";
 
 // ===== 語音 =====
 let jaVoice = null;
@@ -270,10 +420,21 @@ function speakKana(k) {
   if (!("speechSynthesis" in window)) return;
   clearTimeout(kanaTimer);
   speechSynthesis.cancel();
-  const first = kanaUtter(k);
-  first.onend = () => { kanaTimer = setTimeout(() => speechSynthesis.speak(kanaUtter(k)), 1000); };
-  speechSynthesis.speak(first);
+  kanaTimer = setTimeout(() => {
+    let done = false;
+    const second = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(kanaTimer);
+      kanaTimer = setTimeout(() => speechSynthesis.speak(kanaUtter(k)), 1000);
+    };
+    const first = kanaUtter(k);
+    first.onend = second;
+    speechSynthesis.speak(first);
+    kanaTimer = setTimeout(second, 2000);   // 備援：沒收到 onend 時，2 秒後照樣念第二次
+  }, 120);
 }
+
 // 單字：放慢速度；結尾加「。」讓語音照完整句子的語氣自然收尾，不會突然切斷；
 // 先停一下再念，避免 iPhone 把開頭第一個音吃掉
 function speakWord(item) {
@@ -293,12 +454,45 @@ function speakWord(item) {
 let lesson = 0;
 const learned = () => LESSONS.slice(0, lesson + 1).flat();
 const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// 本課 60%、之前各課合計 40%（第一課則全部是本課）
+function pickWeighted(current, previous, last) {
+  let first = current, second = previous;
+  if (previous.length && Math.random() >= 0.6) [first, second] = [previous, current];
+  const a = first.filter(x => x !== last);
+  if (a.length) return a[Math.floor(Math.random() * a.length)];
+  const b = second.filter(x => x !== last);
+  return b.length ? b[Math.floor(Math.random() * b.length)] : first[0];
+}
+const prevKana = () => LESSONS.slice(0, lesson).flat();
+const pickKana = last => pickWeighted(LESSONS[lesson], prevKana(), last);
 function pickNew(pool, last) {
   if (pool.length < 2) return pool[0];
   let k; do { k = pool[Math.floor(Math.random() * pool.length)]; } while (k === last);
   return k;
 }
 const speakerSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg>';
+
+// ===== 吉祥物：長尾山雀（シマエナガ）=====
+const MASCOT_IMG = "data:image/jpeg;base64,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";
+const mascotEl = document.getElementById("mascot");
+const bubbleEl = document.getElementById("bubble");
+const pickOne = a => a[Math.floor(Math.random() * a.length)];
+mascotEl.innerHTML = `<img src="${MASCOT_IMG}" alt="">`;
+function say(text, mood = "normal") {
+  bubbleEl.textContent = text;
+  const anim = mood === "happy" ? "hop" : mood === "oops" ? "shake" : "";
+  mascotEl.classList.remove("hop", "shake");
+  if (anim) { void mascotEl.offsetWidth; mascotEl.classList.add(anim); }
+}
+const PRAISE = ["答對了！すごい！", "很棒，繼續保持", "いいね！就是這樣", "完全正確！"];
+const CHEER = ["沒關係，再聽一次", "差一點點，慢慢來", "だいじょうぶ！再試試"];
+const TAB_TALK = {
+  listen: "仔細聽，選出聽到的字",
+  read: "看到字就大聲念出來吧",
+  dict: "準備好紙筆，我們來聽寫",
+  words: "點單字可以聽發音喔",
+  bank: "複習學過的單字吧",
+};
 
 // ===== 課程選單 =====
 const lessonsEl = document.getElementById("lessons");
@@ -321,6 +515,8 @@ function setLesson(i) {
   });
   listenStats = { ok: 0, total: 0 };
   readStats = { ok: 0, total: 0 };
+  say(`第${i + 1}課：${LESSONS[i].join("")}，一起加油！`);
+  resetDict();
   newListen(false);
   newRead();
   renderWords();
@@ -333,6 +529,8 @@ document.querySelectorAll(".tabs button").forEach(b => {
   b.onclick = () => {
     document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
     document.querySelectorAll(".panel").forEach(p => p.hidden = p.id !== b.dataset.tab);
+    if (b.dataset.tab !== "dict") resetDict();
+    say(TAB_TALK[b.dataset.tab]);
   };
 });
 
@@ -344,7 +542,7 @@ document.getElementById("playBtn").onclick = () => speakKana(listenAnswer);
 
 function newListen(autoplay = true) {
   const pool = learned();
-  listenAnswer = pickNew(pool, listenAnswer);
+  listenAnswer = pickKana(listenAnswer);
   const others = shuffle(pool.filter(k => k !== listenAnswer && k !== SAME_SOUND[listenAnswer])).slice(0, 3);
   const opts = shuffle([listenAnswer, ...others]);
   choicesEl.innerHTML = "";
@@ -367,6 +565,7 @@ function chooseListen(btn, k) {
     if (firstTry) listenStats.ok++;
     listenStats.total++;
     feedbackEl.textContent = `答對了！${k}（${ROMAJI[k]}）`;
+    say(pickOne(PRAISE), "happy");
     feedbackEl.className = "feedback ok";
     updateListenScore();
     setTimeout(newListen, 1300);
@@ -374,6 +573,7 @@ function chooseListen(btn, k) {
     btn.classList.add("ng");
     firstTry = false;
     feedbackEl.textContent = `這是 ${k}（${ROMAJI[k]}），再聽一次`;
+    say(pickOne(CHEER), "oops");
     feedbackEl.className = "feedback ng";
     speakKana(listenAnswer);
   }
@@ -406,68 +606,197 @@ function heardMatches(text, kana) {
 }
 
 const Recog = window.SpeechRecognition || window.webkitSpeechRecognition;
-let readKana = null, readStats = { ok: 0, total: 0 }, recog = null;
+const CAN_RECORD = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+let readKana = null, readStats = { ok: 0, total: 0 };
+let session = null;      // 正在錄音的這一次
+let take = null;         // 目前保留的錄音：{ url, heard[], recogActive }
+let revealed = false, audioCtx = null, myAudio = null;
 const readActions = document.getElementById("readActions");
 const romajiEl = document.getElementById("readRomaji");
 const readFb = document.getElementById("readFeedback");
 const mkBtn = (parent, text, cls, fn) => { const b = document.createElement("button"); b.className = "btn " + cls; b.textContent = text; b.onclick = fn; parent.appendChild(b); return b; };
+const mkRow = () => { const r = document.createElement("div"); r.className = "row"; readActions.appendChild(r); return r; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const setFb = (text, cls = "") => { readFb.textContent = text; readFb.className = "feedback " + cls; };
 
+function dropTake() {
+  if (take && take.url) URL.revokeObjectURL(take.url);
+  take = null;
+}
 function newRead() {
-  if (recog) { try { recog.abort(); } catch (e) {} recog = null; }
-  readKana = pickNew(learned(), readKana);
+  if (session) { session.cancelled = true; session.stop(); }
+  if (myAudio) myAudio.pause();
+  dropTake();
+  revealed = false;
+  readKana = pickKana(readKana);
   document.getElementById("readKana").textContent = readKana;
   romajiEl.textContent = ROMAJI[readKana];
   romajiEl.classList.add("hide");
-  readFb.textContent = ""; readFb.className = "feedback";
-  readActions.innerHTML = "";
-  if (Recog) mkBtn(readActions, "我來念", "mic primary", e => listenToMe(e.currentTarget));
-  mkBtn(readActions, "看答案", Recog ? "" : "primary", revealRead);
+  setFb("");
+  renderReadButtons();
   updateReadScore();
 }
-function listenToMe(btn) {
-  if (recog) return;
-  recog = new Recog();
-  recog.lang = "ja-JP";
-  recog.interimResults = false;
-  recog.maxAlternatives = 5;
-  btn.classList.add("listening");
-  btn.textContent = "請念…";
-  readFb.textContent = ""; readFb.className = "feedback";
-  let got = false;
-  recog.onresult = ev => {
-    got = true;
-    const heard = [];
-    for (const res of ev.results) for (const alt of res) heard.push(alt.transcript.trim());
-    const ok = heard.some(h => heardMatches(h, readKana));
-    readFb.textContent = ok ? `念對了！（聽到：${heard[0]}）` : `聽到的是「${heard[0] || "？"}」，再試一次`;
-    readFb.className = "feedback " + (ok ? "ok" : "ng");
-    if (ok) { readStats.ok++; readStats.total++; revealRead(true); }
-  };
-  recog.onerror = ev => {
-    got = true;
-    readFb.className = "feedback ng";
-    readFb.textContent = ev.error === "not-allowed" || ev.error === "service-not-allowed"
-      ? "沒有麥克風權限。請允許 Safari 使用麥克風，並確認已開啟「Siri 與聽寫」。"
-      : "沒聽清楚，再按一次「我來念」試試。";
-  };
-  recog.onend = () => {
-    recog = null;
-    btn.classList.remove("listening");
-    btn.textContent = "我來念";
-    if (!got) { readFb.textContent = "沒聽到聲音，再按一次試試。"; readFb.className = "feedback ng"; }
-  };
-  try { recog.start(); } catch (e) { recog = null; }
+
+function renderReadButtons(manual = false) {
+  readActions.innerHTML = "";
+  if (!revealed) {
+    if (CAN_RECORD) {
+      const r1 = mkRow();
+      const recBtn = mkBtn(r1, session ? "錄音中…（點一下停止）" : (take ? "重錄" : "我來念"), "mic" + (session ? " listening" : ""), onRecBtn);
+      const playBtn = mkBtn(r1, "播放我的錄音", "", playMine);
+      playBtn.disabled = !take || !!session;
+    }
+    mkBtn(mkRow(), "看答案", "primary", revealRead);
+  } else {
+    const r1 = mkRow();
+    mkBtn(r1, "正確發音", "", () => speakKana(readKana));
+    if (take) mkBtn(r1, "我的錄音", "", playMine);
+    const r2 = mkRow();
+    if (manual) {
+      mkBtn(r2, "念錯了", "bad", () => { readStats.total++; newRead(); });
+      mkBtn(r2, "念對了", "good", () => { readStats.ok++; readStats.total++; newRead(); });
+    } else {
+      mkBtn(r2, "下一個", "primary", newRead);
+    }
+  }
 }
-function revealRead(autoScored = false) {
+
+function playMine() {
+  if (!take) return;
+  speechSynthesis.cancel();
+  if (myAudio) myAudio.pause();
+  myAudio = new Audio(take.url);
+  myAudio.play().catch(() => setFb("無法播放錄音", "ng"));
+}
+
+function onRecBtn() {
+  if (session) { session.stop(); return; }   // 錄音中再按一次 = 手動停止
+  startRecording();
+}
+
+async function startRecording() {
+  speechSynthesis.cancel();
+  if (myAudio) myAudio.pause();
+  // iPhone 規定音訊功能要在點擊當下啟動，所以先建立
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  audioCtx.resume();
+
+  const s = { chunks: [], heard: [], voiced: false, stopped: false, cancelled: false, recogActive: false };
+  session = s;
+  s.stop = () => {
+    if (s.stopped) return;
+    s.stopped = true;
+    try { s.src && s.src.disconnect(); } catch (e) {}
+    try { s.recog && s.recog.stop(); } catch (e) {}
+    if (s.mr && s.mr.state !== "inactive") s.mr.stop();
+    else finish();
+  };
+  setFb("請念…（念完會自動停止）");
+  renderReadButtons();
+
+  // 同時啟動語音辨識，用來評分
+  if (Recog) {
+    try {
+      const r = new Recog();
+      r.lang = "ja-JP"; r.interimResults = false; r.maxAlternatives = 5; r.continuous = false;
+      r.onresult = ev => { for (const res of ev.results) for (const alt of res) s.heard.push(alt.transcript.trim()); };
+      r.onerror = () => {};
+      r.onend = () => { s.recogActive = false; };
+      r.start();
+      s.recog = r; s.recogActive = true;
+    } catch (e) {}
+  }
+
+  try {
+    s.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  } catch (e) {
+    session = null;
+    try { s.recog && s.recog.abort(); } catch (e2) {}
+    setFb(IS_ANDROID ? "沒有麥克風權限。請點網址列左邊的圖示 → 權限 → 允許麥克風。"
+                     : "沒有麥克風權限。請在 Safari 允許使用麥克風（網址列「ぁあ」→ 網站設定）。", "ng");
+    renderReadButtons();
+    return;
+  }
+  if (s.cancelled || s.stopped) { s.stream.getTracks().forEach(t => t.stop()); return; }
+
+  // 錄音
+  s.mr = new MediaRecorder(s.stream);
+  s.mr.ondataavailable = e => { if (e.data && e.data.size) s.chunks.push(e.data); };
+  s.mr.onstop = finish;
+  s.mr.start();
+
+  // 偵測聲音：先量環境噪音，聽到聲音後安靜 0.9 秒就自動停止
+  s.src = audioCtx.createMediaStreamSource(s.stream);
+  const an = audioCtx.createAnalyser();
+  an.fftSize = 1024;
+  s.src.connect(an);
+  const buf = new Float32Array(an.fftSize);
+  const t0 = performance.now();
+  let floor = 0, floorN = 0, lastVoice = 0, voiceMs = 0, lastT = t0;
+  (function tick() {
+    if (s.stopped) return;
+    an.getFloatTimeDomainData(buf);
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+    const rms = Math.sqrt(sum / buf.length);
+    const now = performance.now();
+    if (now - t0 < 250) { floor += rms; floorN++; }
+    else {
+      const th = Math.max(0.015, (floor / Math.max(floorN, 1)) * 3);
+      if (rms > th) { voiceMs += now - lastT; lastVoice = now; if (voiceMs > 80) s.voiced = true; }
+      if (s.voiced && now - lastVoice > 900) return s.stop();
+      if (!s.voiced && now - t0 > 6000) return s.stop();
+      if (now - t0 > 8000) return s.stop();
+    }
+    lastT = now;
+    requestAnimationFrame(tick);
+  })();
+
+  function finish() {
+    if (s.stream) s.stream.getTracks().forEach(t => t.stop());   // 關掉麥克風
+    if (session === s) session = null;
+    if (s.cancelled) return;
+    if (s.voiced || s.heard.length) {
+      dropTake();   // 新錄音蓋掉舊的
+      take = {
+        url: URL.createObjectURL(new Blob(s.chunks, { type: (s.mr && s.mr.mimeType) || "audio/mp4" })),
+        get heard() { return s.heard; },
+        get recogActive() { return s.recogActive; },
+      };
+      setFb("錄好了！可以播放、重錄，或按「看答案」");
+    } else {
+      setFb(take ? "沒聽到聲音，保留上一次的錄音" : "沒聽到聲音，再按一次試試", "ng");
+    }
+    renderReadButtons();
+  }
+}
+
+async function revealRead() {
+  // 還在錄音就先停止
+  if (session) {
+    session.stop();
+    for (let i = 0; i < 20 && session; i++) await sleep(100);
+  }
+  // 等語音辨識結果（最多 2 秒）
+  for (let i = 0; i < 20 && take && take.recogActive && !take.heard.length; i++) await sleep(100);
+
+  revealed = true;
   romajiEl.classList.remove("hide");
   speakKana(readKana);
-  readActions.innerHTML = "";
-  mkBtn(readActions, "再聽一次", "", () => speakKana(readKana));
-  if (autoScored === true) {
-    mkBtn(readActions, "下一個", "primary", newRead);
+
+  if (take && take.heard.length) {
+    const ok = take.heard.some(h => heardMatches(h, readKana));
+    readStats.total++;
+    if (ok) readStats.ok++;
+    setFb(ok ? `正確！念得很好 ✓` : `不正確 ✗　聽起來像「${take.heard[0]}」`, ok ? "ok" : "ng");
+    say(ok ? pickOne(PRAISE) : "比較一下兩個錄音，再試一次", ok ? "happy" : "oops");
+    renderReadButtons(false);
+  } else if (take) {
+    setFb("這支手機沒辦法同時錄音和辨識，請播放你的錄音和正確發音比較後自評");
+    renderReadButtons(true);
   } else {
-    mkBtn(readActions, "念錯了", "bad", () => { readStats.total++; newRead(); });
-    mkBtn(readActions, "念對了", "good", () => { readStats.ok++; readStats.total++; newRead(); });
+    setFb("沒有錄音，請自評");
+    renderReadButtons(true);
   }
   updateReadScore();
 }
@@ -480,14 +809,14 @@ let covered = false;
 document.querySelectorAll(".coverToggle").forEach(t => t.onchange = () => {
   covered = t.checked;
   document.querySelectorAll(".coverToggle").forEach(x => x.checked = covered);
-  renderWords(); renderBank();
+  renderWords(); renderBank(); renderMine();
 });
 function wordCard(item) {
   const [w, kanji, mean] = item;
   const b = document.createElement("button");
   b.className = "word" + (covered ? " covered" : "");
-  b.innerHTML = `<span class="jp kana-font">${w}</span>
-    <span class="info"><div class="kanji">${kanji}</div><div class="mean">${mean}</div></span>${speakerSvg}`;
+  b.innerHTML = `<span class="jp kana-font" lang="ja">${pitchHTML(w)}</span>
+    <span class="info"><div class="kanji" lang="ja">${kanji}</div><div class="mean">${mean}</div></span>${speakerSvg}`;
   b.onclick = () => { b.classList.remove("covered"); speakWord(item); };
   return b;
 }
@@ -511,6 +840,2086 @@ function renderBank() {
   }
 }
 
+// ===== 內建常用字辭典：假名|漢字|中文 =====
+const DICT_DATA = `わたし|私|我
+わたくし|私|我（正式）
+ぼく|僕|我（男性用）
+おれ|俺|我（男性口語）
+あなた||你
+きみ|君|你（對平輩或晚輩）
+かれ|彼|他；男朋友
+かのじょ|彼女|她；女朋友
+わたしたち|私達|我們
+みんな|皆|大家
+みなさん|皆さん|各位
+だれ|誰|誰
+どなた||哪位
+これ||這個
+それ||那個
+あれ||那個（較遠）
+どれ||哪個
+この||這～
+その||那～
+あの||那～（較遠）
+どの||哪～
+ここ||這裡
+そこ||那裡
+あそこ||那裡（較遠）
+どこ||哪裡
+こちら||這邊；這位
+そちら||那邊；您那邊
+あちら||那邊（較遠）
+どちら||哪邊；哪一位
+こっち||這邊（口語）
+そっち||那邊（口語）
+あっち||那邊（口語，較遠）
+どっち||哪邊（口語）
+こんな||這樣的
+そんな||那樣的
+あんな||那樣的（較遠）
+どんな||什麼樣的
+こう||這樣
+そう||那樣；是的
+ああ||那樣；啊
+どう||怎麼樣
+なに|何|什麼
+なん|何|什麼（接某些字前）
+いつ||什麼時候
+いくつ||幾個；幾歲
+いくら||多少錢
+なぜ||為什麼
+どうして||為什麼；怎麼
+どうやって||怎麼做
+いち|一|一
+に|二|二
+さん|三|三
+よん|四|四
+し|四|四
+ご|五|五
+ろく|六|六
+なな|七|七
+しち|七|七
+はち|八|八
+きゅう|九|九
+く|九|九
+じゅう|十|十
+ひゃく|百|百
+せん|千|千
+まん|万|萬
+おく|億|億
+ゼロ||零
+れい|零|零
+ひとつ|一つ|一個
+ふたつ|二つ|兩個
+みっつ|三つ|三個
+よっつ|四つ|四個
+いつつ|五つ|五個
+むっつ|六つ|六個
+ななつ|七つ|七個
+やっつ|八つ|八個
+ここのつ|九つ|九個
+とお|十|十個
+ひとり|一人|一個人
+ふたり|二人|兩個人
+はんぶん|半分|一半
+ぜんぶ|全部|全部
+いま|今|現在
+きょう|今日|今天
+あした|明日|明天
+あす|明日|明天（較正式）
+きのう|昨日|昨天
+おととい|一昨日|前天
+あさって|明後日|後天
+まいにち|毎日|每天
+けさ|今朝|今天早上
+こんばん|今晩|今晚
+こんや|今夜|今夜
+ゆうべ|昨夜|昨晚
+あさ|朝|早上
+ひる|昼|中午；白天
+よる|夜|晚上
+ばん|晩|晚上
+ゆうがた|夕方|傍晚
+ごぜん|午前|上午
+ごご|午後|下午
+まいあさ|毎朝|每天早上
+まいばん|毎晩|每天晚上
+こんしゅう|今週|這星期
+せんしゅう|先週|上星期
+らいしゅう|来週|下星期
+まいしゅう|毎週|每星期
+こんげつ|今月|這個月
+せんげつ|先月|上個月
+らいげつ|来月|下個月
+まいつき|毎月|每個月
+ことし|今年|今年
+きょねん|去年|去年
+らいねん|来年|明年
+まいとし|毎年|每年
+さらいねん|再来年|後年
+しゅう|週|星期；週
+つき|月|月亮；月份
+とし|年|年；年齡
+ねん|年|年
+じかん|時間|時間；小時
+じ|時|～點（鐘）
+ふん|分|～分（鐘）
+びょう|秒|秒
+はん|半|半
+にち|日|日；天
+ひ|日|日子；太陽
+げつようび|月曜日|星期一
+かようび|火曜日|星期二
+すいようび|水曜日|星期三
+もくようび|木曜日|星期四
+きんようび|金曜日|星期五
+どようび|土曜日|星期六
+にちようび|日曜日|星期日
+しゅうまつ|週末|週末
+はる|春|春天
+なつ|夏|夏天
+あき|秋|秋天
+ふゆ|冬|冬天
+きせつ|季節|季節
+むかし|昔|以前；從前
+さいきん|最近|最近
+こんど|今度|這次；下次
+このあいだ|この間|前幾天
+あとで|後で|等一下；之後
+さっき||剛才
+もうすぐ||快要；馬上
+すぐ||馬上；立刻
+まだ||還；還沒
+もう||已經；再
+はじめ|初め|開始；最初
+はじめて|初めて|第一次
+さいご|最後|最後
+さいしょ|最初|最初
+つぎ|次|下一個
+まえ|前|前面；以前
+あと|後|之後；後面
+とき|時|時候
+あいだ|間|之間；期間
+ころ|頃|～左右（時候）
+ときどき|時々|有時候
+いつも||總是
+よく||常常；好好地
+たまに||偶爾
+ずっと||一直
+もういちど|もう一度|再一次
+ひと|人|人
+おとこ|男|男性
+おんな|女|女性
+おとこのこ|男の子|男孩
+おんなのこ|女の子|女孩
+こども|子供|小孩
+おとな|大人|大人
+あかちゃん|赤ちゃん|嬰兒
+ともだち|友達|朋友
+しんゆう|親友|好朋友
+かぞく|家族|家人
+りょうしん|両親|父母
+ちち|父|（自己的）父親
+はは|母|（自己的）母親
+おとうさん|お父さん|父親；爸爸
+おかあさん|お母さん|母親；媽媽
+あに|兄|（自己的）哥哥
+あね|姉|（自己的）姊姊
+おとうと|弟|弟弟
+いもうと|妹|妹妹
+おにいさん|お兄さん|哥哥
+おねえさん|お姉さん|姊姊
+きょうだい|兄弟|兄弟姊妹
+そふ|祖父|（自己的）祖父
+そぼ|祖母|（自己的）祖母
+おじいさん|お祖父さん|爺爺；老爺爺
+おばあさん|お祖母さん|奶奶；老奶奶
+おじさん|叔父さん|叔叔；伯伯
+おばさん|叔母さん|阿姨；伯母
+おっと|夫|（自己的）丈夫
+つま|妻|（自己的）妻子
+ごしゅじん|ご主人|（別人的）丈夫
+おくさん|奥さん|（別人的）太太
+むすこ|息子|兒子
+むすめ|娘|女兒
+いとこ|従兄弟|堂表兄弟姊妹
+まご|孫|孫子
+しんせき|親戚|親戚
+せんせい|先生|老師；醫生
+がくせい|学生|學生
+せいと|生徒|（國高中）學生
+りゅうがくせい|留学生|留學生
+いしゃ|医者|醫生
+かんごし|看護師|護理師
+けいさつ|警察|警察
+けいかん|警官|警察
+かいしゃいん|会社員|公司職員
+しゃいん|社員|員工
+しゃちょう|社長|社長；老闆
+ぶちょう|部長|部長
+てんいん|店員|店員
+うんてんしゅ|運転手|司機
+べんごし|弁護士|律師
+きょうし|教師|教師
+しゅふ|主婦|家庭主婦
+きゃく|客|客人
+おきゃくさん|お客さん|客人；顧客
+となり|隣|隔壁；旁邊
+ひとびと|人々|人們
+みな|皆|大家
+じぶん|自分|自己
+なかま|仲間|夥伴
+こいびと|恋人|戀人
+かれし|彼氏|男朋友
+あいて|相手|對方
+からだ|体|身體
+あたま|頭|頭
+かお|顔|臉
+め|目|眼睛
+みみ|耳|耳朵
+はな|鼻|鼻子
+くち|口|嘴巴
+は|歯|牙齒
+した|舌|舌頭
+くび|首|脖子
+かた|肩|肩膀
+て|手|手
+うで|腕|手臂
+ゆび|指|手指
+つめ|爪|指甲
+あし|足|腳；腿
+ひざ|膝|膝蓋
+せなか|背中|背
+おなか|お腹|肚子
+むね|胸|胸
+こし|腰|腰
+かみ|髪|頭髮
+け|毛|毛
+ひげ||鬍子
+はだ|肌|皮膚
+ち|血|血
+こころ|心|心
+き|気|心情；氣
+こえ|声|聲音
+いき|息|呼吸
+びょうき|病気|生病
+かぜ|風邪|感冒
+ねつ|熱|發燒；熱度
+せき|咳|咳嗽
+けが|怪我|受傷
+くすり|薬|藥
+びょういん|病院|醫院
+げんき|元気|有精神；健康
+けんこう|健康|健康
+いたい|痛い|痛的
+つかれる|疲れる|累
+ねむい|眠い|想睡的
+たべもの|食べ物|食物
+のみもの|飲み物|飲料
+ごはん|ご飯|飯；餐
+あさごはん|朝ご飯|早餐
+ひるごはん|昼ご飯|午餐
+ばんごはん|晩ご飯|晚餐
+ゆうはん|夕飯|晚餐
+しょくじ|食事|用餐
+りょうり|料理|料理；做菜
+こめ|米|米
+パン||麵包
+にく|肉|肉
+ぎゅうにく|牛肉|牛肉
+ぶたにく|豚肉|豬肉
+とりにく|鶏肉|雞肉
+さかな|魚|魚
+やさい|野菜|蔬菜
+くだもの|果物|水果
+たまご|卵|蛋
+みず|水|水
+おゆ|お湯|熱水
+おちゃ|お茶|茶
+こうちゃ|紅茶|紅茶
+コーヒー||咖啡
+ぎゅうにゅう|牛乳|牛奶
+ミルク||牛奶
+ジュース||果汁
+さけ|酒|酒
+おさけ|お酒|酒
+ビール||啤酒
+ワイン||葡萄酒
+しお|塩|鹽
+さとう|砂糖|糖
+しょうゆ|醤油|醬油
+みそ|味噌|味噌
+あじ|味|味道
+すし|寿司|壽司
+そば|蕎麦|蕎麥麵
+うどん||烏龍麵
+ラーメン||拉麵
+てんぷら|天ぷら|天婦羅
+カレー||咖哩
+サラダ||沙拉
+スープ||湯
+ケーキ||蛋糕
+おかし|お菓子|點心；零食
+あめ|飴|糖果
+りんご|林檎|蘋果
+みかん|蜜柑|橘子
+いちご|苺|草莓
+バナナ||香蕉
+ぶどう|葡萄|葡萄
+もも|桃|桃子
+すいか|西瓜|西瓜
+かき|柿|柿子
+なし|梨|梨子
+トマト||番茄
+じゃがいも||馬鈴薯
+たまねぎ|玉ねぎ|洋蔥
+にんじん|人参|紅蘿蔔
+キャベツ||高麗菜
+だいこん|大根|白蘿蔔
+とうふ|豆腐|豆腐
+なっとう|納豆|納豆
+べんとう|弁当|便當
+おにぎり||飯糰
+ぎょうざ|餃子|餃子
+はし|箸|筷子
+さら|皿|盤子
+ちゃわん|茶碗|飯碗
+コップ||杯子
+カップ||杯子
+スプーン||湯匙
+フォーク||叉子
+ナイフ||刀子
+なべ|鍋|鍋子
+れいぞうこ|冷蔵庫|冰箱
+だいどころ|台所|廚房
+レストラン||餐廳
+しょくどう|食堂|食堂；餐廳
+きっさてん|喫茶店|咖啡店
+カフェ||咖啡店
+メニュー||菜單
+ちゅうもん|注文|點餐；訂購
+たべる|食べる|吃
+のむ|飲む|喝
+つくる|作る|做；製作
+おいしい|美味しい|好吃的
+まずい||難吃的
+あまい|甘い|甜的
+からい|辛い|辣的
+しょっぱい||鹹的
+すっぱい|酸っぱい|酸的
+にがい|苦い|苦的
+おなかがすく|お腹が空く|肚子餓
+いただきます||開動了
+ごちそうさま||我吃飽了；謝謝招待
+いえ|家|家；房子
+うち|家|家
+へや|部屋|房間
+いま|居間|客廳
+げんかん|玄関|玄關
+まど|窓|窗戶
+ドア||門
+と|戸|門
+かべ|壁|牆壁
+やね|屋根|屋頂
+にわ|庭|庭院
+かいだん|階段|樓梯
+トイレ||廁所
+おてあらい|お手洗い|洗手間
+ふろ|風呂|浴缸；洗澡
+おふろ|お風呂|浴缸；洗澡
+シャワー||淋浴
+ベッド||床
+ふとん|布団|棉被
+まくら|枕|枕頭
+つくえ|机|書桌
+いす|椅子|椅子
+テーブル||桌子
+たな|棚|架子
+ほんだな|本棚|書架
+テレビ||電視
+ラジオ||收音機
+でんわ|電話|電話
+けいたい|携帯|手機
+スマホ||智慧型手機
+パソコン||個人電腦
+コンピューター||電腦
+カメラ||相機
+とけい|時計|時鐘；手錶
+でんき|電気|電燈；電
+エアコン||冷氣
+かぎ|鍵|鑰匙
+かさ|傘|雨傘
+かばん|鞄|包包
+さいふ|財布|錢包
+おかね|お金|錢
+きって|切手|郵票
+てがみ|手紙|信
+はがき|葉書|明信片
+ふうとう|封筒|信封
+にもつ|荷物|行李
+はこ|箱|箱子
+ふくろ|袋|袋子
+ほん|本|書
+ざっし|雑誌|雜誌
+しんぶん|新聞|報紙
+じしょ|辞書|字典
+ノート||筆記本
+えんぴつ|鉛筆|鉛筆
+ペン||筆
+ボールペン||原子筆
+けしゴム|消しゴム|橡皮擦
+かみ|紙|紙
+はさみ||剪刀
+しゃしん|写真|照片
+え|絵|畫
+ちず|地図|地圖
+きっぷ|切符|車票
+チケット||票
+ふく|服|衣服
+ようふく|洋服|衣服（西式）
+きもの|着物|和服
+シャツ||襯衫
+セーター||毛衣
+コート||大衣
+うわぎ|上着|外套
+ズボン||褲子
+スカート||裙子
+くつ|靴|鞋子
+くつした|靴下|襪子
+ぼうし|帽子|帽子
+めがね|眼鏡|眼鏡
+ネクタイ||領帶
+ハンカチ||手帕
+ポケット||口袋
+ボタン||按鈕；鈕扣
+もの|物|東西
+こと|事|事情
+どうぐ|道具|工具
+きかい|機械|機器
+じどうしゃ|自動車|汽車
+くるま|車|車子
+じてんしゃ|自転車|腳踏車
+バイク||機車
+バス||公車
+タクシー||計程車
+でんしゃ|電車|電車
+ちかてつ|地下鉄|地鐵
+しんかんせん|新幹線|新幹線
+ひこうき|飛行機|飛機
+ふね|船|船
+えき|駅|車站
+くうこう|空港|機場
+みなと|港|港口
+みち|道|道路
+どうろ|道路|道路
+かど|角|轉角
+しんごう|信号|紅綠燈
+はし|橋|橋
+まち|町|城鎮；街
+むら|村|村子
+くに|国|國家
+とし|都市|都市
+いなか|田舎|鄉下
+みせ|店|商店
+デパート||百貨公司
+スーパー||超市
+コンビニ||便利商店
+ほんや|本屋|書店
+やおや|八百屋|蔬果店
+ぎんこう|銀行|銀行
+ゆうびんきょく|郵便局|郵局
+としょかん|図書館|圖書館
+びじゅつかん|美術館|美術館
+はくぶつかん|博物館|博物館
+こうえん|公園|公園
+どうぶつえん|動物園|動物園
+えいがかん|映画館|電影院
+ホテル||飯店
+りょかん|旅館|日式旅館
+がっこう|学校|學校
+しょうがっこう|小学校|小學
+ちゅうがっこう|中学校|國中
+こうこう|高校|高中
+だいがく|大学|大學
+きょうしつ|教室|教室
+かいしゃ|会社|公司
+じむしょ|事務所|辦公室
+こうじょう|工場|工廠
+じんじゃ|神社|神社
+てら|寺|寺廟
+おてら|お寺|寺廟
+きょうかい|教会|教會
+くすりや|薬屋|藥局
+プール||游泳池
+ビル||大樓
+アパート||公寓
+マンション||公寓大樓
+ばしょ|場所|地方；場所
+ところ|所|地方
+うえ|上|上面
+した|下|下面
+なか|中|裡面
+そと|外|外面
+みぎ|右|右邊
+ひだり|左|左邊
+よこ|横|旁邊；橫
+うしろ|後ろ|後面
+むこう|向こう|對面
+ちかく|近く|附近
+そば|側|旁邊
+まんなか|真ん中|正中間
+きた|北|北方
+みなみ|南|南方
+ひがし|東|東方
+にし|西|西方
+てんき|天気|天氣
+あめ|雨|雨
+ゆき|雪|雪
+かぜ|風|風
+くも|雲|雲
+はれ|晴れ|晴天
+くもり|曇り|陰天
+たいふう|台風|颱風
+かみなり|雷|雷
+そら|空|天空
+たいよう|太陽|太陽
+ほし|星|星星
+やま|山|山
+かわ|川|河
+うみ|海|海
+みずうみ|湖|湖
+いけ|池|池塘
+もり|森|森林
+はやし|林|樹林
+き|木|樹；木頭
+はな|花|花
+くさ|草|草
+は|葉|葉子
+えだ|枝|樹枝
+さくら|桜|櫻花
+いし|石|石頭
+すな|砂|沙子
+つち|土|土
+しま|島|島
+たに|谷|山谷
+おか|丘|山丘
+の|野|原野
+はたけ|畑|旱田
+た|田|田
+しぜん|自然|自然
+くうき|空気|空氣
+ひ|火|火
+こおり|氷|冰
+どうぶつ|動物|動物
+いぬ|犬|狗
+ねこ|猫|貓
+とり|鳥|鳥
+うま|馬|馬
+うし|牛|牛
+ぶた|豚|豬
+ひつじ|羊|羊
+さる|猿|猴子
+くま|熊|熊
+きつね|狐|狐狸
+うさぎ|兎|兔子
+ねずみ|鼠|老鼠
+へび|蛇|蛇
+むし|虫|蟲
+ちょう|蝶|蝴蝶
+か|蚊|蚊子
+かめ|亀|烏龜
+ぞう|象|大象
+しか|鹿|鹿
+にわとり|鶏|雞
+ペット||寵物
+あつい|暑い|熱的（天氣）
+さむい|寒い|冷的（天氣）
+あたたかい|暖かい|溫暖的
+すずしい|涼しい|涼爽的
+つめたい|冷たい|冰的；冷淡的
+あつい|熱い|燙的
+ふる|降る|（雨、雪）下
+はれる|晴れる|放晴
+くもる|曇る|變陰天
+ふく|吹く|吹
+さく|咲く|（花）開
+ある|有る|有（物品）
+いる|居る|有、在（人或動物）
+する||做
+くる|来る|來
+いく|行く|去
+かえる|帰る|回去；回家
+もどる|戻る|返回
+でる|出る|出去；出來
+はいる|入る|進入
+でかける|出かける|出門
+つく|着く|到達
+とまる|止まる|停止
+とまる|泊まる|住宿
+あるく|歩く|走路
+はしる|走る|跑
+およぐ|泳ぐ|游泳
+とぶ|飛ぶ|飛
+のる|乗る|搭乘
+おりる|降りる|下（車）
+わたる|渡る|穿越；渡過
+まがる|曲がる|轉彎
+すすむ|進む|前進
+とおる|通る|通過
+うごく|動く|動
+すわる|座る|坐
+たつ|立つ|站
+ねる|寝る|睡覺；躺
+おきる|起きる|起床
+やすむ|休む|休息；請假
+はたらく|働く|工作
+つとめる|勤める|任職
+あそぶ|遊ぶ|玩
+みる|見る|看
+みせる|見せる|給～看
+みえる|見える|看得見
+きく|聞く|聽；問
+きこえる|聞こえる|聽得見
+いう|言う|說
+はなす|話す|說話
+しゃべる||聊天；講話
+こたえる|答える|回答
+たずねる|尋ねる|詢問
+よむ|読む|讀
+かく|書く|寫
+かく|描く|畫
+おしえる|教える|教；告訴
+ならう|習う|學習（技藝）
+まなぶ|学ぶ|學習
+べんきょう|勉強|讀書；學習
+おぼえる|覚える|記住
+わすれる|忘れる|忘記
+しる|知る|知道
+わかる|分かる|懂；知道
+おもう|思う|想；認為
+かんがえる|考える|思考
+しんじる|信じる|相信
+きめる|決める|決定
+きまる|決まる|決定好
+えらぶ|選ぶ|選擇
+くらべる|比べる|比較
+しらべる|調べる|調查；查
+さがす|探す|尋找
+みつける|見つける|找到
+みつかる|見つかる|被找到
+かう|買う|買
+うる|売る|賣
+はらう|払う|付錢
+かす|貸す|借出
+かりる|借りる|借入
+かえす|返す|歸還
+あげる||給（別人）
+くれる||（別人）給我
+もらう||得到；收到
+おくる|送る|寄送；送
+とどく|届く|送達
+うける|受ける|接受；參加（考試）
+もつ|持つ|拿；擁有
+とる|取る|拿；取
+とる|撮る|拍（照）
+おく|置く|放置
+いれる|入れる|放入
+だす|出す|拿出；寄出
+つかう|使う|使用
+つける|付ける|裝上；打開（電器）
+けす|消す|關掉；擦掉
+あける|開ける|打開
+しめる|閉める|關上
+あく|開く|開著
+しまる|閉まる|關著
+ひらく|開く|開；打開
+とじる|閉じる|閉上；關閉
+はじめる|始める|開始（做）
+はじまる|始まる|開始
+おわる|終わる|結束
+おえる|終える|完成
+やめる|止める|停止；放棄
+つづける|続ける|繼續
+つづく|続く|持續
+まつ|待つ|等待
+あう|会う|見面
+あう|合う|合適
+わかれる|別れる|分開；分手
+あつまる|集まる|聚集
+あつめる|集める|收集
+てつだう|手伝う|幫忙
+たすける|助ける|幫助；救
+こまる|困る|困擾
+まちがえる|間違える|弄錯
+なおす|直す|修理；改正
+なおる|治る|（病）痊癒
+こわす|壊す|弄壞
+こわれる|壊れる|壞掉
+きる|切る|切；剪
+きる|着る|穿（上衣）
+はく|履く|穿（褲、鞋）
+かぶる||戴（帽子）
+ぬぐ|脱ぐ|脫
+あらう|洗う|洗
+せんたく|洗濯|洗衣服
+そうじ|掃除|打掃
+みがく|磨く|刷；磨
+ふく|拭く|擦
+すてる|捨てる|丟掉
+ひろう|拾う|撿
+なげる|投げる|丟；投
+うつ|打つ|打
+おす|押す|按；推
+ひく|引く|拉
+ひく|弾く|彈（樂器）
+うたう|歌う|唱歌
+おどる|踊る|跳舞
+わらう|笑う|笑
+なく|泣く|哭
+なく|鳴く|（動物）叫
+おこる|怒る|生氣
+よろこぶ|喜ぶ|高興
+たのしむ|楽しむ|享受
+あいする|愛する|愛
+すむ|住む|居住
+うまれる|生まれる|出生
+しぬ|死ぬ|死
+いきる|生きる|活著
+そだてる|育てる|養育
+そだつ|育つ|成長
+なる||變成
+かわる|変わる|改變
+かえる|変える|改變（某物）
+ふえる|増える|增加
+へる|減る|減少
+あがる|上がる|上升
+さがる|下がる|下降
+あげる|上げる|舉起；提高
+さげる|下げる|降低
+のぼる|登る|爬（山）
+おちる|落ちる|掉落；落榜
+おとす|落とす|弄掉
+なくす|無くす|弄丟
+なくなる|無くなる|不見；用完
+のこる|残る|留下；剩下
+たりる|足りる|足夠
+かかる||花費（時間、金錢）
+かける||打（電話）；掛
+ねむる|眠る|睡著
+ゆめ|夢|夢
+よぶ|呼ぶ|叫；邀請
+さそう|誘う|邀約
+たのむ|頼む|請求；拜託
+ことわる|断る|拒絕
+ゆるす|許す|原諒；允許
+あやまる|謝る|道歉
+いのる|祈る|祈禱
+つたえる|伝える|轉達
+しらせる|知らせる|通知
+れんらく|連絡|聯絡
+やくそく|約束|約定
+よやく|予約|預約
+じゅんび|準備|準備
+よういする|用意する|準備
+きをつける|気を付ける|小心
+がんばる|頑張る|加油；努力
+まける|負ける|輸
+かつ|勝つ|贏
+たたかう|戦う|戰鬥
+ちがう|違う|不同；不對
+にる|似る|相似
+にる|煮る|煮
+やく|焼く|烤；燒
+あらわす|表す|表示
+つつむ|包む|包
+かざる|飾る|裝飾
+ならべる|並べる|排列
+ならぶ|並ぶ|排隊
+さわる|触る|觸摸
+すう|吸う|吸
+はく|吐く|吐
+さす|差す|撐（傘）
+ひっこす|引っ越す|搬家
+つれていく|連れて行く|帶（人）去
+もっていく|持って行く|帶（物）去
+むかえる|迎える|迎接
+おくれる|遅れる|遲到；延遲
+まにあう|間に合う|來得及
+いそぐ|急ぐ|趕快
+こむ|込む|擁擠
+すく|空く|空；（肚子）餓
+おおきい|大きい|大的
+ちいさい|小さい|小的
+たかい|高い|高的；貴的
+ひくい|低い|低的；矮的
+やすい|安い|便宜的
+ながい|長い|長的
+みじかい|短い|短的
+ひろい|広い|寬廣的
+せまい|狭い|狹窄的
+おもい|重い|重的
+かるい|軽い|輕的
+あたらしい|新しい|新的
+ふるい|古い|舊的
+わかい|若い|年輕的
+おおい|多い|多的
+すくない|少ない|少的
+ちかい|近い|近的
+とおい|遠い|遠的
+はやい|早い|早的
+はやい|速い|快的
+おそい|遅い|晚的；慢的
+あかるい|明るい|明亮的；開朗的
+くらい|暗い|暗的
+ふとい|太い|粗的
+ほそい|細い|細的
+あつい|厚い|厚的
+うすい|薄い|薄的
+つよい|強い|強的
+よわい|弱い|弱的
+かたい|硬い|硬的
+やわらかい|柔らかい|柔軟的
+いい||好的
+よい|良い|好的
+わるい|悪い|壞的
+むずかしい|難しい|難的
+やさしい|易しい|簡單的
+やさしい|優しい|溫柔的
+たのしい|楽しい|快樂的；好玩的
+うれしい|嬉しい|高興的
+かなしい|悲しい|悲傷的
+さびしい|寂しい|寂寞的
+こわい|怖い|可怕的
+おもしろい|面白い|有趣的
+つまらない||無聊的
+いそがしい|忙しい|忙碌的
+かわいい|可愛い|可愛的
+うつくしい|美しい|美麗的
+きたない|汚い|髒的
+うるさい||吵的；囉嗦
+ほしい|欲しい|想要的
+すごい||厲害的
+えらい|偉い|了不起的
+ひどい||過分的；嚴重的
+はずかしい|恥ずかしい|害羞的；丟臉的
+あぶない|危ない|危險的
+ただしい|正しい|正確的
+くわしい|詳しい|詳細的
+めずらしい|珍しい|稀奇的
+きびしい|厳しい|嚴格的
+すばらしい|素晴らしい|極好的
+おかしい||奇怪的；好笑的
+まるい|丸い|圓的
+しろい|白い|白色的
+くろい|黒い|黑色的
+あかい|赤い|紅色的
+あおい|青い|藍色的
+きいろい|黄色い|黃色的
+ちゃいろ|茶色|咖啡色
+みどり|緑|綠色
+むらさき|紫|紫色
+いろ|色|顏色
+しろ|白|白色
+くろ|黒|黑色
+あか|赤|紅色
+あお|青|藍色
+きれい|綺麗|漂亮；乾淨
+しずか|静か|安靜
+にぎやか|賑やか|熱鬧
+ひま|暇|有空；閒
+たいへん|大変|辛苦；不得了
+だいじょうぶ|大丈夫|沒問題
+だいじ|大事|重要
+たいせつ|大切|重要；珍惜
+じょうず|上手|擅長
+へた|下手|不擅長
+とくい|得意|拿手
+にがて|苦手|不擅長；怕
+すき|好き|喜歡
+きらい|嫌い|討厭
+だいすき|大好き|非常喜歡
+しんせつ|親切|親切
+ゆうめい|有名|有名
+べんり|便利|方便
+ふべん|不便|不方便
+かんたん|簡単|簡單
+ふくざつ|複雑|複雜
+じゆう|自由|自由
+とくべつ|特別|特別
+ひつよう|必要|必要
+むり|無理|勉強；不可能
+だめ|駄目|不行
+いや|嫌|討厭；不要
+へん|変|奇怪
+まじめ|真面目|認真
+しあわせ|幸せ|幸福
+ざんねん|残念|可惜
+あんぜん|安全|安全
+きけん|危険|危險
+しんぱい|心配|擔心
+あんしん|安心|安心
+ていねい|丁寧|有禮貌；仔細
+すてき|素敵|很棒；好看
+らく|楽|輕鬆
+おなじ|同じ|相同
+いろいろ|色々|各式各樣
+とても||非常
+すこし|少し|一點點
+ちょっと||一下；有點
+たくさん|沢山|很多
+もっと||更
+いちばん|一番|最；第一
+あまり||不太～（接否定）
+ぜんぜん|全然|完全（不）
+ほとんど||幾乎
+だいたい|大体|大概
+たぶん|多分|大概；也許
+きっと||一定
+かならず|必ず|必定
+ぜひ|是非|務必
+ほんとうに|本当に|真的
+ほんとう|本当|真的；真實
+やっぱり||果然；還是
+やはり||果然；還是
+また||又；再
+もうすこし|もう少し|再一點
+だけ||只有
+しか||只（接否定）
+ゆっくり||慢慢地
+はっきり||清楚地
+しっかり||確實地；好好地
+ちゃんと||好好地
+すっかり||完全地
+ちょうど||剛好
+ほか|他|其他
+いっしょに|一緒に|一起
+ひとりで|一人で|一個人
+はじめに|初めに|首先
+まず||首先
+それから||然後
+そして||而且；然後
+でも||但是
+しかし||但是
+だから||所以
+それで||因此；然後
+じゃあ||那麼
+では||那麼
+または||或者
+つまり||也就是說
+たとえば|例えば|例如
+もし||如果
+なかなか||相當；（不）容易
+けっこう|結構|相當；不用了
+ありがとう|有難う|謝謝
+すみません||不好意思；對不起
+ごめんなさい||對不起
+こんにちは||你好
+こんばんは||晚安（晚上見面）
+おはよう||早安
+おやすみ||晚安（睡前）
+さようなら||再見
+はじめまして|初めまして|初次見面
+よろしく||請多指教
+おねがいします|お願いします|拜託了
+どうぞ||請
+どうも||謝謝；你好
+はい||是；好
+いいえ||不是
+ええ||是的
+うん||嗯
+ううん||不
+おめでとう||恭喜
+いってきます|行ってきます|我出門了
+いってらっしゃい|行ってらっしゃい|路上小心
+ただいま||我回來了
+おかえり|お帰り|歡迎回來
+おつかれさま|お疲れ様|辛苦了
+しつれいします|失礼します|打擾了
+もしもし||喂（電話）
+なまえ|名前|名字
+しごと|仕事|工作
+しゅくだい|宿題|作業
+じゅぎょう|授業|課；上課
+しけん|試験|考試
+テスト||考試
+もんだい|問題|問題；題目
+こたえ|答え|答案
+しつもん|質問|提問
+いみ|意味|意思
+ことば|言葉|語言；詞
+たんご|単語|單字
+ぶんしょう|文章|文章
+ぶんぽう|文法|文法
+かんじ|漢字|漢字
+ひらがな|平仮名|平假名
+かたかな|片仮名|片假名
+カタカナ||片假名
+にほんご|日本語|日語
+えいご|英語|英語
+ちゅうごくご|中国語|中文
+がいこくご|外国語|外語
+にほん|日本|日本
+ちゅうごく|中国|中國
+たいわん|台湾|台灣
+かんこく|韓国|韓國
+アメリカ||美國
+イギリス||英國
+フランス||法國
+ドイツ||德國
+がいこく|外国|外國
+がいこくじん|外国人|外國人
+せかい|世界|世界
+れきし|歴史|歷史
+ぶんか|文化|文化
+けいざい|経済|經濟
+せいじ|政治|政治
+しゃかい|社会|社會
+かがく|科学|科學
+すうがく|数学|數學
+おんがく|音楽|音樂
+びじゅつ|美術|美術
+たいいく|体育|體育
+スポーツ||運動
+サッカー||足球
+やきゅう|野球|棒球
+テニス||網球
+すいえい|水泳|游泳
+さんぽ|散歩|散步
+りょこう|旅行|旅行
+しゅみ|趣味|興趣
+えいが|映画|電影
+うた|歌|歌
+ゲーム||遊戲
+まんが|漫画|漫畫
+アニメ||動畫
+ニュース||新聞
+ばんぐみ|番組|節目
+はなし|話|話；故事
+いけん|意見|意見
+かんがえ|考え|想法
+きもち|気持ち|心情
+きぶん|気分|心情；身體狀況
+あい|愛|愛
+けいけん|経験|經驗
+しっぱい|失敗|失敗
+せいこう|成功|成功
+りゆう|理由|理由
+げんいん|原因|原因
+けっか|結果|結果
+ほうほう|方法|方法
+もくてき|目的|目的
+けいかく|計画|計畫
+よてい|予定|預定；行程
+ようじ|用事|事情；要辦的事
+つごう|都合|方便與否
+じこ|事故|事故
+かじ|火事|火災
+じしん|地震|地震
+けんか|喧嘩|吵架
+せんそう|戦争|戰爭
+へいわ|平和|和平
+ルール||規則
+きそく|規則|規則
+ほう|法|法律；方法
+ほうりつ|法律|法律
+ぎむ|義務|義務
+けんり|権利|權利
+おまつり|お祭り|祭典
+まつり|祭り|祭典
+パーティー||派對
+たんじょうび|誕生日|生日
+けっこん|結婚|結婚
+しょうがつ|正月|新年
+やすみ|休み|休息；假日
+なつやすみ|夏休み|暑假
+ふゆやすみ|冬休み|寒假
+しゅっちょう|出張|出差
+かいぎ|会議|會議
+しりょう|資料|資料
+きゅうりょう|給料|薪水
+ねだん|値段|價格
+りょうきん|料金|費用
+おつり|お釣り|找的零錢
+レシート||收據
+カード||卡片
+げんきん|現金|現金
+ちょきん|貯金|存款
+ぜいきん|税金|稅金
+ぼうえき|貿易|貿易
+さんぎょう|産業|產業
+しょうひん|商品|商品
+サービス||服務
+じょうほう|情報|資訊
+インターネット||網路
+メール||電子郵件
+ばんごう|番号|號碼
+じゅうしょ|住所|地址
+せ|背|身高；背
+たいじゅう|体重|體重
+アイス||冰淇淋
+アイスクリーム||冰淇淋
+アルバイト||打工
+バイト||打工
+エレベーター||電梯
+エスカレーター||手扶梯
+ガス||瓦斯
+ガソリン||汽油
+ギター||吉他
+ピアノ||鋼琴
+クラス||班級
+グラス||玻璃杯
+ゴルフ||高爾夫
+コンサート||演唱會
+ジャム||果醬
+ストーブ||暖爐
+スリッパ||拖鞋
+セット||套餐；一組
+ソース||醬汁
+タオル||毛巾
+タバコ||香菸
+チーズ||起司
+チョコレート||巧克力
+デザート||甜點
+テキスト||課本
+ドラマ||連續劇
+ハンバーガー||漢堡
+ビデオ||影片
+ファイル||檔案；資料夾
+プレゼント||禮物
+ボール||球
+ホーム||月台；家
+ポスト||郵筒
+マッチ||火柴
+レポート||報告
+アプリ||應用程式
+ネット||網路
+パスワード||密碼
+メッセージ||訊息
+データ||資料
+ページ||頁
+スタート||開始
+ゴール||終點；目標
+チーム||隊伍
+メンバー||成員
+リーダー||領導者
+イベント||活動
+セール||特賣
+サイズ||尺寸
+デザイン||設計
+スタイル||風格
+カラー||顏色
+レジ||收銀台
+カウンター||櫃台
+ロビー||大廳
+キッチン||廚房
+リビング||客廳
+ベランダ||陽台
+カーテン||窗簾
+ソファ||沙發
+ライト||燈
+テープ||膠帶
+ペンキ||油漆
+ドライヤー||吹風機
+シャンプー||洗髮精
+せっけん|石鹸|肥皂
+はブラシ|歯ブラシ|牙刷
+はみがき|歯磨き|刷牙
+けしょう|化粧|化妝
+かがみ|鏡|鏡子
+あいさつ|挨拶|打招呼
+あんない|案内|導覽；引導
+いけばな|生け花|插花
+いじょう|以上|以上
+いか|以下|以下
+いがい|以外|以外
+いない|以内|以內
+いと|糸|線
+いのち|命|生命
+うそ|嘘|謊話
+うら|裏|背面；裡側
+おもて|表|正面；表面
+うち|内|裡面；內
+おく|奥|深處
+おと|音|聲音
+おもちゃ|玩具|玩具
+おみやげ|お土産|伴手禮
+おれい|お礼|謝禮；道謝
+かい|回|～次
+かい|階|～樓
+かいがん|海岸|海岸
+かいもの|買い物|購物
+かがく|化学|化學
+かず|数|數量
+かたち|形|形狀
+かつどう|活動|活動
+かてい|家庭|家庭
+かね|金|錢；金屬
+かのう|可能|可能
+かみさま|神様|神
+かんけい|関係|關係
+かんごふ|看護婦|護士
+きかい|機会|機會
+ぎじゅつ|技術|技術
+きそ|基礎|基礎
+きぬ|絹|絲綢
+きぼう|希望|希望
+きょういく|教育|教育
+きょうみ|興味|興趣
+きんじょ|近所|附近；鄰居
+ぐあい|具合|狀況；身體狀況
+くみ|組|班；組
+けいさん|計算|計算
+けしき|景色|風景
+けっせき|欠席|缺席
+げしゅく|下宿|寄宿
+けんきゅう|研究|研究
+けんぶつ|見物|參觀
+こうがい|郊外|郊區
+こうぎ|講義|講課
+こうぎょう|工業|工業
+こうつう|交通|交通
+こうどう|講堂|禮堂
+こうむいん|公務員|公務員
+こくさい|国際|國際
+こしょう|故障|故障
+ごみ||垃圾
+さか|坂|坡道
+ざいりょう|材料|材料
+さんせい|賛成|贊成
+はんたい|反対|反對
+じだい|時代|時代
+したく|支度|準備
+じてん|辞典|辭典
+しな|品|物品
+しまい|姉妹|姊妹
+しゅうかん|習慣|習慣
+じゅうどう|柔道|柔道
+しょうせつ|小説|小說
+しょうたい|招待|招待；邀請
+しょうらい|将来|將來
+しょくりょうひん|食料品|食品
+じょせい|女性|女性
+だんせい|男性|男性
+しらせ|知らせ|通知
+じんこう|人口|人口
+しんぶんしゃ|新聞社|報社
+すいどう|水道|自來水
+すみ|隅|角落
+せいかつ|生活|生活
+せいさん|生産|生產
+せいよう|西洋|西方
+せつめい|説明|說明
+せわ|世話|照顧
+せん|線|線
+ぜんたい|全体|全體
+せんたくき|洗濯機|洗衣機
+そつぎょう|卒業|畢業
+にゅうがく|入学|入學
+たいかい|大会|大會
+だいがくせい|大学生|大學生
+たいしかん|大使館|大使館
+たたみ|畳|榻榻米
+たのしみ|楽しみ|期待；樂趣
+ため|為|為了
+だんぼう|暖房|暖氣
+れいぼう|冷房|冷氣
+ちから|力|力量
+ちり|地理|地理
+ちゅうい|注意|注意
+ちゅうしゃ|注射|打針
+ちゅうしゃじょう|駐車場|停車場
+てきとう|適当|適當；隨便
+てぶくろ|手袋|手套
+てん|点|點；分數
+でんとう|電灯|電燈
+とうとう||終於
+とくに|特に|特別是
+とこや|床屋|理髮店
+とちゅう|途中|途中
+とっきゅう|特急|特快車
+にっき|日記|日記
+にゅういん|入院|住院
+たいいん|退院|出院
+ねっしん|熱心|熱心
+のど|喉|喉嚨
+はいしゃ|歯医者|牙醫
+はつおん|発音|發音
+はなみ|花見|賞花
+ひきだし|引き出し|抽屜
+ひるま|昼間|白天
+ひるやすみ|昼休み|午休
+ぶんがく|文学|文學
+へんじ|返事|回覆
+ほうそう|放送|廣播
+ほんやく|翻訳|翻譯
+もめん|木綿|棉
+ゆしゅつ|輸出|出口
+ゆにゅう|輸入|進口
+ゆびわ|指輪|戒指
+ようい|用意|準備
+よしゅう|予習|預習
+ふくしゅう|復習|複習
+りよう|利用|利用
+りょうほう|両方|兩方
+るす|留守|不在家
+れんしゅう|練習|練習
+わけ|訳|理由；道理
+わすれもの|忘れ物|遺忘的東西
+あきらめる|諦める|放棄
+あきる|飽きる|膩了
+あずける|預ける|寄放
+あたえる|与える|給予
+あたる|当たる|命中；中獎
+あつかう|扱う|處理；對待
+あふれる|溢れる|溢出
+あまる|余る|剩餘
+あらわれる|現れる|出現
+あわせる|合わせる|配合；合起來
+いじめる||欺負
+いためる|炒める|炒
+いわう|祝う|慶祝
+うえる|植える|種植
+うかがう|伺う|拜訪；請教（謙讓）
+うごかす|動かす|移動（某物）
+うつす|写す|抄寫；拍攝
+うつる|移る|移動；轉移
+うまくいく|上手くいく|順利
+うらやましい|羨ましい|羨慕的
+おいかける|追いかける|追趕
+おうえん|応援|加油；支持
+おこす|起こす|叫醒；引起
+おこなう|行う|舉行；進行
+おこる|起こる|發生
+おさえる|押さえる|按住
+おどろく|驚く|驚訝
+おぼれる|溺れる|溺水
+おもいだす|思い出す|想起
+おりる|下りる|下來
+おる|折る|折
+おれる|折れる|折斷
+かくす|隠す|隱藏
+かくれる|隠れる|躲藏
+かたづける|片付ける|整理
+かぞえる|数える|數
+かまう|構う|在意
+かむ|噛む|咬
+かよう|通う|往返；通勤
+かれる|枯れる|枯萎
+かわく|乾く|乾
+かわく|渇く|口渴
+かんじる|感じる|感覺
+がまん|我慢|忍耐
+きえる|消える|消失
+きく|効く|有效
+きにいる|気に入る|喜歡；中意
+きにする|気にする|在意
+くらす|暮らす|生活
+くりかえす|繰り返す|反覆
+くわえる|加える|加上
+けんがく|見学|參觀學習
+こえる|越える|越過
+こぼす||灑出
+ころぶ|転ぶ|跌倒
+こわがる|怖がる|害怕
+さける|避ける|避開
+さす|刺す|刺；叮
+さわぐ|騒ぐ|吵鬧
+しかる|叱る|責罵
+しずむ|沈む|沉沒
+したがう|従う|遵從
+しばる|縛る|綁
+しまう||收起來
+しめす|示す|顯示
+すぎる|過ぎる|經過；超過
+すごす|過ごす|度過
+すすめる|勧める|推薦
+すべる|滑る|滑
+すませる|済ませる|辦完
+すむ|済む|結束；解決
+する|刷る|印刷
+そろう|揃う|齊全
+たおれる|倒れる|倒下
+たおす|倒す|弄倒
+たしかめる|確かめる|確認
+たすかる|助かる|得救；幫大忙
+たずねる|訪ねる|拜訪
+たたく|叩く|敲；打
+たたむ|畳む|折疊
+たてる|建てる|建造
+たてる|立てる|立起；訂（計畫）
+ためす|試す|嘗試
+ためる|貯める|存（錢）
+だます|騙す|欺騙
+ちらかす|散らかす|弄亂
+つかまえる|捕まえる|抓住
+つかむ|掴む|抓
+つきあう|付き合う|交往；陪伴
+つくる|造る|建造
+つける|漬ける|醃
+つたわる|伝わる|傳達
+つながる|繋がる|連接
+つなぐ|繋ぐ|連接；牽
+つぶれる|潰れる|壓壞；倒閉
+つもる|積もる|堆積
+つれる|連れる|帶（人）
+であう|出会う|相遇
+できる|出来る|能；會；完成
+とおす|通す|讓通過
+とかす|溶かす|溶化
+とける|溶ける|溶化
+とどける|届ける|送到
+とめる|止める|停下；阻止
+とめる|泊める|留宿
+とりかえる|取り替える|更換
+ながれる|流れる|流
+なぐる|殴る|毆打
+なでる|撫でる|撫摸
+なれる|慣れる|習慣
+にげる|逃げる|逃跑
+にあう|似合う|適合
+ぬすむ|盗む|偷
+ぬれる|濡れる|淋濕
+ねがう|願う|祈求；希望
+のこす|残す|留下
+のばす|伸ばす|延長；伸展
+のびる|伸びる|伸長
+はかる|測る|測量
+はこぶ|運ぶ|搬運
+はずす|外す|取下
+はずれる|外れる|脫落；沒中
+はなれる|離れる|離開
+はやる|流行る|流行
+はる|貼る|貼
+はれる|腫れる|腫
+ひえる|冷える|變冷
+ひかる|光る|發光
+ひやす|冷やす|冰鎮
+ふむ|踏む|踩
+ふやす|増やす|增加
+ふる|振る|揮動；甩
+ほめる|褒める|稱讚
+まかせる|任せる|交給
+まぜる|混ぜる|混合
+まちがう|間違う|弄錯
+まもる|守る|保護；遵守
+まよう|迷う|迷路；猶豫
+まわる|回る|轉；繞
+みおくる|見送る|送行
+みとめる|認める|承認
+むかう|向かう|朝向；前往
+むすぶ|結ぶ|繫；結
+めしあがる|召し上がる|吃、喝（尊敬）
+もうしこむ|申し込む|申請；報名
+もうす|申す|說（謙讓）
+もえる|燃える|燃燒
+やくにたつ|役に立つ|有用
+やせる|痩せる|變瘦
+ふとる|太る|變胖
+やぶる|破る|弄破
+やぶれる|破れる|破掉
+やめる|辞める|辭職
+ゆずる|譲る|讓
+ゆれる|揺れる|搖晃
+よごす|汚す|弄髒
+よごれる|汚れる|變髒
+わかす|沸かす|燒開（水）
+わく|沸く|沸騰
+わける|分ける|分開
+わたす|渡す|交給
+わる|割る|打破；分割
+われる|割れる|破裂
+あいず|合図|信號；暗號
+あき|空き|空位
+あくしゅ|握手|握手
+あたり|辺り|附近
+あぶら|油|油
+あまど|雨戸|防雨窗板
+あんき|暗記|背誦
+いえで|家出|離家出走
+いがく|医学|醫學
+いきおい|勢い|氣勢
+いしき|意識|意識
+いじわる|意地悪|壞心眼
+いぜん|以前|以前
+いたずら|悪戯|惡作劇
+いっしょう|一生|一生
+いっぱい|一杯|滿；一杯
+いっぱん|一般|一般
+いど|井戸|水井
+いのしし|猪|山豬
+いわ|岩|岩石
+うみべ|海辺|海邊
+うりば|売り場|賣場
+うわさ|噂|傳聞
+うんてん|運転|駕駛
+うんどう|運動|運動
+えいきょう|影響|影響
+えいよう|栄養|營養
+えがお|笑顔|笑容
+えんそく|遠足|遠足
+おうだん|横断|穿越
+おおぜい|大勢|很多人
+おかず||配菜
+おしゃべり||聊天；多嘴
+おしゃれ||時髦
+おしいれ|押し入れ|壁櫥
+おすすめ|お勧め|推薦
+おとしもの|落とし物|遺失物
+おまもり|お守り|護身符
+おもいで|思い出|回憶
+おもさ|重さ|重量
+おや|親|父母
+おんど|温度|溫度
+おんせん|温泉|溫泉
+かいけい|会計|結帳；會計
+かいわ|会話|會話
+かかり|係|負責人
+かぐ|家具|家具
+かこ|過去|過去
+かじ|家事|家事
+かしゅ|歌手|歌手
+かた|方|～方法；（尊稱）人
+かち|価値|價值
+かっこう|格好|樣子；外表
+かつやく|活躍|活躍
+かてい|仮定|假設
+かなもの|金物|五金
+かのうせい|可能性|可能性
+かみがた|髪型|髮型
+がめん|画面|畫面
+かもく|科目|科目
+かわせ|為替|匯率；匯款
+かんきょう|環境|環境
+かんこう|観光|觀光
+かんしゃ|感謝|感謝
+かんどう|感動|感動
+きおく|記憶|記憶
+きおん|気温|氣溫
+きかん|期間|期間
+きげん|期限|期限
+きこう|気候|氣候
+きじ|記事|報導
+きず|傷|傷
+きたく|帰宅|回家
+きっかけ||契機
+きのう|機能|功能
+きほん|基本|基本
+きまり|決まり|規定
+きゅうか|休暇|休假
+きゅうきゅうしゃ|救急車|救護車
+きょうりょく|協力|合作
+ぎょうれつ|行列|隊伍
+きろく|記録|紀錄
+きんえん|禁煙|禁菸
+ぐうぜん|偶然|偶然
+くうせき|空席|空位
+くせ|癖|習慣；毛病
+くふう|工夫|設法；巧思
+くらし|暮らし|生活
+くろう|苦労|辛苦
+けいい|敬意|敬意
+けいご|敬語|敬語
+けいたいでんわ|携帯電話|手機
+けっしん|決心|決心
+けってい|決定|決定
+げんかい|限界|極限
+げんしょう|現象|現象
+げんじつ|現実|現實
+こうかい|後悔|後悔
+こうかん|交換|交換
+こうこく|広告|廣告
+こうさてん|交差点|十字路口
+こうちょう|校長|校長
+こうはい|後輩|學弟妹；後輩
+せんぱい|先輩|學長姊；前輩
+こうふく|幸福|幸福
+こくご|国語|國語
+こしょう|胡椒|胡椒
+こせい|個性|個性
+ことわざ|諺|諺語
+このみ|好み|喜好
+ごみばこ|ごみ箱|垃圾桶
+ごらく|娯楽|娛樂
+こんざつ|混雑|擁擠
+さくひん|作品|作品
+さくぶん|作文|作文
+さっか|作家|作家
+さべつ|差別|歧視
+さんか|参加|參加
+さんこう|参考|參考
+しあい|試合|比賽
+しかく|資格|資格
+じかんわり|時間割|課表
+しきゅう|至急|緊急
+しげん|資源|資源
+じけん|事件|事件
+しじ|指示|指示
+じしん|自信|自信
+じじつ|事実|事實
+したぎ|下着|內衣
+じっけん|実験|實驗
+じっさい|実際|實際
+しつど|湿度|濕度
+しなもの|品物|物品
+しはらい|支払い|付款
+しばふ|芝生|草坪
+じまん|自慢|自誇；得意
+しめきり|締め切り|截止期限
+しゃしょう|車掌|車掌
+しゅうり|修理|修理
+しゅしょう|首相|首相
+しゅじゅつ|手術|手術
+しゅっせき|出席|出席
+しゅっぱつ|出発|出發
+しゅっしん|出身|出身
+しゅるい|種類|種類
+じゅんばん|順番|順序
+しょうかい|紹介|介紹
+しょうがくきん|奨学金|獎學金
+じょうけん|条件|條件
+しょうじき|正直|誠實
+じょうだん|冗談|玩笑
+しょうぶ|勝負|勝負
+しょくぎょう|職業|職業
+しょくば|職場|職場
+しょっき|食器|餐具
+しょるい|書類|文件
+じんせい|人生|人生
+しんちょう|身長|身高
+しんぽ|進歩|進步
+しんよう|信用|信用
+すいみん|睡眠|睡眠
+すがた|姿|姿態
+せいかく|性格|個性
+せいかく|正確|正確
+せいき|世紀|世紀
+せいせき|成績|成績
+せいちょう|成長|成長
+せいふ|政府|政府
+せいふく|制服|制服
+せき|席|座位
+せきにん|責任|責任
+せけん|世間|社會；世人
+せっきょくてき|積極的|積極的
+ぜったい|絶対|絕對
+せつやく|節約|節約
+せんげん|宣言|宣言
+せんたく|選択|選擇
+せんもん|専門|專業
+そうだん|相談|商量
+そうりょう|送料|運費
+そくど|速度|速度
+そこ|底|底部
+そしき|組織|組織
+そんけい|尊敬|尊敬
+たいおん|体温|體溫
+たいけん|体験|體驗
+たいしょう|対象|對象
+たいど|態度|態度
+たいりょく|体力|體力
+たから|宝|寶物
+たっきゅう|卓球|桌球
+たにん|他人|別人
+たば|束|束
+たび|旅|旅行
+だんたい|団体|團體
+ちいき|地域|地區
+ちえ|知恵|智慧
+ちきゅう|地球|地球
+ちしき|知識|知識
+ちゅうがくせい|中学生|國中生
+ちょうさ|調査|調查
+ちょうし|調子|狀況；狀態
+つうきん|通勤|通勤
+つうやく|通訳|口譯
+つなみ|津波|海嘯
+つみ|罪|罪
+ていきけん|定期券|定期票
+ていしょく|定食|套餐
+でぐち|出口|出口
+いりぐち|入口|入口
+てつだい|手伝い|幫忙
+てつづき|手続き|手續
+でんち|電池|電池
+てんらんかい|展覧会|展覽會
+とうちゃく|到着|抵達
+どうりょう|同僚|同事
+とおり|通り|大街；照～
+とくちょう|特徴|特徵
+とざん|登山|登山
+としうえ|年上|年長
+としした|年下|年幼
+どりょく|努力|努力
+ないよう|内容|內容
+なか|仲|交情
+なかみ|中身|內容物
+なつかしい|懐かしい|懷念的
+なみ|波|波浪
+なみだ|涙|眼淚
+におい|匂い|氣味
+にんき|人気|人氣；受歡迎
+ねぼう|寝坊|睡過頭
+ねんれい|年齢|年齡
+のうりょく|能力|能力
+のりもの|乗り物|交通工具
+はいたつ|配達|配送
+はくしゅ|拍手|拍手
+はじまり|始まり|開始
+はたち|二十歳|二十歲
+ばつ|罰|懲罰
+はっけん|発見|發現
+はつめい|発明|發明
+はっぴょう|発表|發表
+はなび|花火|煙火
+はやくち|早口|說話快
+はんにん|犯人|犯人
+ひがい|被害|受害
+ひかく|比較|比較
+ひこうじょう|飛行場|機場
+ひじょうぐち|非常口|緊急出口
+ひっこし|引っ越し|搬家
+ひとこと|一言|一句話
+ひなん|避難|避難
+ひみつ|秘密|秘密
+ひょうげん|表現|表達
+ひょうじょう|表情|表情
+びよういん|美容院|美容院
+ひるね|昼寝|午睡
+ふあん|不安|不安
+ふうけい|風景|風景
+ふうふ|夫婦|夫妻
+ぶか|部下|部下
+ふくそう|服装|服裝
+ふしぎ|不思議|不可思議
+ぶじ|無事|平安
+ぶたい|舞台|舞台
+ぶっか|物価|物價
+ふまん|不満|不滿
+へいじつ|平日|平日
+へんか|変化|變化
+ほうこく|報告|報告
+ほうそう|包装|包裝
+ほけん|保険|保險
+ほしゅう|補習|補習
+ほんしゃ|本社|總公司
+まいご|迷子|迷路的孩子
+まどぐち|窓口|窗口
+まんいん|満員|客滿
+みかた|味方|夥伴；我方
+みずぎ|水着|泳衣
+みらい|未来|未來
+むだ|無駄|浪費
+めいわく|迷惑|麻煩；困擾
+めんきょ|免許|執照
+めんせつ|面接|面試
+もくひょう|目標|目標
+もじ|文字|文字
+もよう|模様|花紋
+やくわり|役割|角色；任務
+やちん|家賃|房租
+ゆうじん|友人|友人
+ゆうしょう|優勝|冠軍
+ゆうびん|郵便|郵件
+ゆうき|勇気|勇氣
+ゆか|床|地板
+ようす|様子|樣子
+よぞら|夜空|夜空
+よのなか|世の中|世上
+りかい|理解|理解
+りょうがえ|両替|換錢
+るすばん|留守番|看家
+れいがい|例外|例外
+ろうか|廊下|走廊
+わだい|話題|話題
+わりびき|割引|折扣
+わるくち|悪口|壞話
+あおぞら|青空|藍天
+あかり|明かり|燈光
+あさい|浅い|淺的
+ふかい|深い|深的
+あやしい|怪しい|可疑的
+ありがたい|有難い|值得感謝的
+いさましい|勇ましい|勇敢的
+うまい||好吃；高明
+おとなしい|大人しい|乖巧的；文靜的
+おもたい|重たい|沉重的
+かしこい|賢い|聰明的
+かたい|固い|堅固的
+かっこいい||帥氣的
+かゆい|痒い|癢的
+きつい||緊的；辛苦的
+くさい|臭い|臭的
+くやしい|悔しい|不甘心的
+くるしい|苦しい|痛苦的
+こまかい|細かい|細小的；詳細的
+こい|濃い|濃的
+したしい|親しい|親近的
+しつこい||糾纏不休的
+ずるい||狡猾的
+するどい|鋭い|銳利的
+だるい||倦怠的
+ちょうどいい||剛剛好
+つらい|辛い|難受的
+にぶい|鈍い|遲鈍的
+ぬるい||溫的（不夠熱）
+はげしい|激しい|激烈的
+ひとしい|等しい|相等的
+まずしい|貧しい|貧窮的
+まぶしい|眩しい|刺眼的
+むしあつい|蒸し暑い|悶熱的
+めんどうくさい|面倒臭い|麻煩的
+もったいない||可惜的；浪費
+やかましい||吵鬧的
+ゆるい|緩い|鬆的；緩的
+よろしい||好的（禮貌）
+わかりやすい|分かりやすい|容易懂的
+あきらか|明らか|明顯
+あたりまえ|当たり前|理所當然
+おだやか|穏やか|平穩
+かわいそう|可哀想|可憐
+きゅう|急|突然；緊急
+げんじつてき|現実的|現實的
+こううん|幸運|幸運
+さかん|盛ん|興盛
+さわやか|爽やか|清爽
+しんけん|真剣|認真
+すなお|素直|坦率
+せいけつ|清潔|乾淨
+たしか|確か|確實；好像是
+たいくつ|退屈|無聊
+だいたん|大胆|大膽
+てきせつ|適切|適當
+とうぜん|当然|當然
+なまいき|生意気|自大
+のんびり||悠閒
+はで|派手|花俏
+じみ|地味|樸素
+へいき|平気|不在乎；沒事
+ほがらか|朗らか|開朗
+まっすぐ|真っ直ぐ|筆直
+めいかく|明確|明確
+もちろん|勿論|當然
+ゆうしゅう|優秀|優秀
+ゆたか|豊か|豐富
+らくちん|楽ちん|輕鬆
+りっぱ|立派|出色
+わがまま||任性
+あいかわらず|相変わらず|仍然
+あっというま|あっという間|一瞬間
+いきなり||突然
+いっしょうけんめい|一生懸命|拚命；努力
+いったい|一体|到底
+いつのまにか|いつの間にか|不知不覺
+いまにも|今にも|眼看就要
+おそらく|恐らく|恐怕
+おもわず|思わず|不由得
+かなり||相當
+きゅうに|急に|突然
+けっして|決して|絕對（不）
+さっそく|早速|馬上
+さらに|更に|更加
+しばらく||暫時；一陣子
+じつは|実は|其實
+すでに|既に|已經
+ぜひとも|是非とも|務必
+そろそろ||差不多該
+たしかに|確かに|的確
+ただ||只是；免費
+たまたま||碰巧
+ついに||終於
+できるだけ||盡量
+とつぜん|突然|突然
+とにかく||總之
+なるべく||盡量
+なるほど||原來如此
+ふだん|普段|平常
+ほぼ||幾乎
+まさか||怎麼可能
+まったく|全く|完全
+まるで||簡直像
+むしろ||倒不如
+やっと||終於
+ようやく||終於
+わざわざ||特地
+わりと|割と|比較
+いっぱい||滿滿；很多
+ぐっすり||熟睡地
+こっそり||偷偷地
+すっきり||舒暢
+そっと||輕輕地
+どきどき||心跳加速
+にこにこ||笑嘻嘻
+ぴったり||剛好；吻合
+ふらふら||搖搖晃晃
+ぺこぺこ||肚子很餓；點頭哈腰
+わくわく||興奮期待
+いらいら||焦躁
+がっかり||失望
+びっくり||嚇一跳
+ほっと||鬆一口氣
+うっかり||不小心
+きちんと||整齊；確實
+さっぱり||清爽；完全（不）
+おかげさまで|お陰様で|託您的福
+かしこまりました||知道了（服務用語）
+しょうしょう|少々|稍微
+ちょっとまって|ちょっと待って|等一下
+けっこうです|結構です|不用了
+いらっしゃいませ||歡迎光臨
+おじゃまします|お邪魔します|打擾了
+おだいじに|お大事に|請保重
+ようこそ||歡迎
+ひさしぶり|久しぶり|好久不見
+おげんきで|お元気で|保重
+こんかい|今回|這次
+ぜんかい|前回|上次
+じかい|次回|下次
+おととし|一昨年|前年
+みょうにち|明日|明日（正式）
+しょうがくせい|小学生|小學生
+こうこうせい|高校生|高中生
+じょうし|上司|上司
+おきゃく|お客|客人
+けいさつかん|警察官|警察
+しょうぼうしゃ|消防車|消防車
+こうばん|交番|派出所
+しやくしょ|市役所|市公所
+くやくしょ|区役所|區公所
+ホームページ||網頁
+アドレス||地址；網址
+ログイン||登入
+ダウンロード||下載
+コピー||影印；複製
+プリント||講義；列印
+スケジュール||行程表
+アイデア||點子
+チャンス||機會
+ストレス||壓力
+ダイエット||減肥
+トレーニング||訓練
+ジョギング||慢跑
+ハイキング||健行
+キャンプ||露營
+スキー||滑雪
+ドライブ||開車兜風
+ショッピング||購物
+アクセサリー||飾品
+ブラウス||女用襯衫
+ジーンズ||牛仔褲
+スニーカー||運動鞋
+サンダル||涼鞋
+マフラー||圍巾`;
+const DICT = new Map();
+DICT_DATA.split("\n").forEach(line => {
+  const [w, k, m] = line.split("|");
+  const key = toHira(w);
+  if (!DICT.has(key)) DICT.set(key, []);
+  DICT.get(key).push({ w, k, m });
+});
+
+// ===== 我的單字（存在這支手機的瀏覽器裡）=====
+const MY_KEY = "kana-app-my-words";
+let myWords = [];
+try { myWords = JSON.parse(localStorage.getItem(MY_KEY) || "[]"); } catch (e) { myWords = []; }
+function saveMyWords() {
+  try { localStorage.setItem(MY_KEY, JSON.stringify(myWords)); return true; } catch (e) { return false; }
+}
+const myItems = () => myWords.map(o => { const a = [o.w, o.k || "", o.m]; a.custom = true; return a; });
+
+function renderMine() {
+  const el = document.getElementById("myWords");
+  el.innerHTML = "";
+  if (!myWords.length) { el.innerHTML = '<div class="hint" style="margin:4px 0 0">還沒有自己的單字。看到新單字時，按下面的按鈕加進來。</div>'; return; }
+  myItems().forEach((item, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "mine";
+    wrap.appendChild(wordCard(item));
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "✕"; del.setAttribute("aria-label", `刪除 ${item[0]}`);
+    del.onclick = () => {
+      if (!confirm(`要刪除「${item[0]}」嗎？`)) return;
+      myWords.splice(i, 1); saveMyWords(); renderMine();
+    };
+    wrap.appendChild(del);
+    el.appendChild(wrap);
+  });
+}
+const addForm = document.getElementById("addForm");
+const addMsg = document.getElementById("addMsg");
+document.getElementById("addToggle").onclick = () => {
+  addForm.hidden = !addForm.hidden;
+  addMsg.textContent = "";
+  if (!addForm.hidden) document.getElementById("inKana").focus();
+};
+document.getElementById("addCancel").onclick = () => { addForm.hidden = true; };
+
+// 輸入假名後自動查辭典
+const inKana = document.getElementById("inKana");
+const inKanji = document.getElementById("inKanji");
+const inMean = document.getElementById("inMean");
+const dictHint = document.getElementById("dictHint");
+let lookupTimer = null;
+function fillFrom(e) {
+  // 只覆蓋空白或之前自動填入的欄位，不會蓋掉你自己打的字
+  if (!inKanji.value || inKanji.dataset.auto) { inKanji.value = e.k; inKanji.dataset.auto = "1"; }
+  if (!inMean.value || inMean.dataset.auto) { inMean.value = e.m; inMean.dataset.auto = "1"; }
+}
+function clearAuto() {
+  [inKanji, inMean].forEach(el => { if (el.dataset.auto) { el.value = ""; delete el.dataset.auto; } });
+}
+[inKanji, inMean].forEach(el => el.addEventListener("input", () => delete el.dataset.auto));
+function lookupKana() {
+  const key = toHira(inKana.value.trim().replace(/\s+/g, ""));
+  dictHint.innerHTML = "";
+  clearAuto();
+  if (!key) return;
+  const found = DICT.get(key);
+  if (!found) {
+    if (key.length >= 2) dictHint.textContent = "辭典裡找不到這個字，請自己填寫漢字和意思。";
+    return;
+  }
+  if (found.length === 1) {
+    fillFrom(found[0]);
+    dictHint.textContent = "已從辭典自動填入，可以再修改。";
+    return;
+  }
+  dictHint.textContent = `這個讀音有 ${found.length} 個意思，請選一個：`;
+  const box = document.createElement("div");
+  box.className = "cands";
+  found.forEach(e => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = `<b lang="ja">${e.k || e.w}</b>${e.m}`;
+    b.setAttribute("aria-pressed", "false");
+    b.onclick = () => {
+      box.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+      clearAuto();
+      fillFrom(e);
+    };
+    box.appendChild(b);
+  });
+  dictHint.appendChild(box);
+}
+inKana.addEventListener("input", () => { clearTimeout(lookupTimer); lookupTimer = setTimeout(lookupKana, 300); });
+document.getElementById("addSave").onclick = () => {
+  const w = document.getElementById("inKana").value.trim().replace(/\s+/g, "");
+  const k = document.getElementById("inKanji").value.trim();
+  const m = document.getElementById("inMean").value.trim();
+  if (!w) return addMsg.textContent = "請輸入假名";
+  if (!/^[\u3041-\u3096\u30A1-\u30FAー]+$/.test(w)) return addMsg.textContent = "假名欄只能輸入平假名或片假名";
+  if (!m) return addMsg.textContent = "請輸入中文意思";
+  if (myWords.some(o => o.w === w && (o.k || "") === k)) return addMsg.textContent = "這個單字已經加過了";
+  myWords.push({ w, k, m });
+  const saved = saveMyWords();
+  ["inKana", "inKanji", "inMean"].forEach(id => { const el = document.getElementById(id); el.value = ""; delete el.dataset.auto; });
+  dictHint.innerHTML = "";
+  addForm.hidden = true;
+  renderMine();
+  say(saved ? `記住「${w}」了！` : "已加入，但這個瀏覽器無法保存，關掉後會消失", saved ? "happy" : "oops");
+  speak(w, 0.6);
+};
+renderMine();
+
 // ===== 單字庫：隨機複習 =====
 let revItem = null, revStats = { ok: 0, total: 0 };
 const allLearnedWords = () => WORD_LESSON.slice(0, lesson + 1).flat();
@@ -526,8 +2935,8 @@ function endReview() {
   document.getElementById("reviewBox").hidden = true;
 }
 function nextReview() {
-  revItem = pickNew(allLearnedWords(), revItem);
-  document.getElementById("revWord").textContent = revItem[0];
+  revItem = pickWeighted(WORD_LESSON[lesson], [...WORD_LESSON.slice(0, lesson).flat(), ...myItems()], revItem);
+  document.getElementById("revWord").innerHTML = pitchHTML(revItem[0]);
   document.getElementById("revKanji").textContent = revItem[1];
   document.getElementById("revMean").textContent = revItem[2];
   document.getElementById("revKanji").classList.add("hide");
@@ -546,7 +2955,130 @@ function nextReview() {
   document.getElementById("revScore").textContent = revStats.total ? `記得 ${revStats.ok} / ${revStats.total} 個` : "";
 }
 
+// ===== 聽寫 =====
+const dictBox = document.getElementById("dictBox");
+const wordRomaji = w => [...w].map(c => c === "を" ? "o" : ROMAJI[c]).join("");
+let dict = { items: [], idx: 0, token: 0, timers: [] };
+const DICT_WAIT = 30;     // 每個字念完後等待的秒數
+const DICT_RATE = 0.48;   // 聽寫語速（單字練習 0.6 再放慢 20%）
+
+function dictClearTimers() { dict.timers.forEach(clearTimeout); dict.timers = []; }
+function resetDict() {
+  dict.token++;
+  dictClearTimers();
+  if (dictBox) dictIdle();
+}
+function pickDictWords(n) {
+  const cur = WORD_LESSON[lesson], prev = WORD_LESSON.slice(0, lesson).flat(), out = [];
+  while (out.length < n && out.length < cur.length + prev.length) {
+    const c = cur.filter(x => !out.includes(x)), p = prev.filter(x => !out.includes(x));
+    const pool = p.length && (!c.length || Math.random() >= 0.6) ? p : c;   // 本課 60%
+    out.push(pool[Math.floor(Math.random() * pool.length)]);
+  }
+  return out;
+}
+// 念一個單字，念完後呼叫 cb（Android 偶爾不回報念完，加上備援）
+function speakWordThen(item, tk, cb) {
+  let done = false;
+  const finish = () => { if (done || tk !== dict.token) return; done = true; cb(); };
+  speechSynthesis.cancel();
+  dict.timers.push(setTimeout(() => {
+    const u = new SpeechSynthesisUtterance((item[3] || item[0]) + "。");
+    u.lang = "ja-JP";
+    if (jaVoice) u.voice = jaVoice;
+    u.rate = DICT_RATE;
+    u.onend = finish;
+    speechSynthesis.speak(u);
+    dict.timers.push(setTimeout(finish, 8000));
+  }, 150));
+}
+
+function dictIdle() {
+  dictBox.innerHTML = `
+    <div class="card">
+      <p style="margin:0 0 6px;font-size:17px;font-weight:600">聽寫小考</p>
+      <p class="hint" style="margin:0">從學過的單字隨機抽 5 個，每個念完會等 30 秒再念下一個。<br>準備好紙筆，用平假名寫下聽到的字。</p>
+    </div>`;
+  const r = document.createElement("div"); r.className = "row"; dictBox.appendChild(r);
+  mkBtn(r, "開始聽寫", "primary", startDict);
+}
+function startDict() {
+  dict.items = pickDictWords(5);
+  if (!dict.items.length) { say("這一課還沒有單字可以考", "oops"); return; }
+  runDict();
+}
+function runDict() {
+  dict.token++;
+  dictClearTimers();
+  dict.idx = 0;
+  say("仔細聽，寫下來喔");
+  playDict(dict.token);
+}
+function dictScreen(status, showBar) {
+  const n = dict.items.length;
+  dictBox.innerHTML = `
+    <div class="card">
+      <div class="dict-count">${dict.idx + 1}<small> / ${n}</small></div>
+      <div class="dots">${dict.items.map((_, i) => `<span class="${i < dict.idx ? "done" : i === dict.idx ? "now" : ""}"></span>`).join("")}</div>
+      <div class="dict-status" id="dictStatus">${status}</div>
+      ${showBar ? '<div class="bar"><i id="dictBar"></i></div>' : ""}
+    </div>`;
+}
+function playDict(tk) {
+  if (tk !== dict.token) return;
+  dictScreen("正在念…", false);
+  speakWordThen(dict.items[dict.idx], tk, () => {
+    if (dict.idx >= dict.items.length - 1) return dictEnd();
+    // 倒數 30 秒
+    dictScreen(`下一個：${DICT_WAIT} 秒`, true);
+    const bar = document.getElementById("dictBar");
+    requestAnimationFrame(() => { bar.style.transition = `width ${DICT_WAIT}s linear`; bar.style.width = "100%"; });
+    for (let sec = DICT_WAIT - 1; sec >= 1; sec--) {
+      dict.timers.push(setTimeout(() => {
+        if (tk !== dict.token) return;
+        const st = document.getElementById("dictStatus");
+        if (st) st.textContent = `下一個：${sec} 秒`;
+      }, (DICT_WAIT - sec) * 1000));
+    }
+    dict.timers.push(setTimeout(() => { if (tk !== dict.token) return; dict.idx++; playDict(tk); }, DICT_WAIT * 1000));
+  });
+}
+function dictEnd() {
+  const n = dict.items.length;
+  dictBox.innerHTML = `
+    <div class="card">
+      <div class="dict-count">${n}<small> / ${n}</small></div>
+      <div class="dots">${dict.items.map(() => '<span class="done"></span>').join("")}</div>
+      <div class="dict-status">全部念完了！檢查一下你寫的字</div>
+    </div>`;
+  const r = document.createElement("div"); r.className = "row"; dictBox.appendChild(r);
+  mkBtn(r, "再聽一次", "", runDict);
+  mkBtn(r, "結束作答", "primary", dictAnswers);
+  say("辛苦了！寫好就按結束作答", "happy");
+}
+function dictAnswers() {
+  dict.token++;
+  dictClearTimers();
+  speechSynthesis.cancel();
+  dictBox.innerHTML = '<p class="hint">答案（點一下可以聽發音）</p>';
+  const list = document.createElement("div"); list.className = "words"; dictBox.appendChild(list);
+  dict.items.forEach((item, i) => {
+    const [w, kanji, mean] = item;
+    const b = document.createElement("button");
+    b.className = "word";
+    b.innerHTML = `<span class="ans-no">${i + 1}</span>
+      <span class="jp kana-font" lang="ja" style="min-width:100px">${pitchHTML(w)}</span>
+      <span class="info"><div class="kanji" lang="ja">${kanji}</div><div class="ro">${wordRomaji(w)}</div><div class="mean">${mean}</div></span>${speakerSvg}`;
+    b.onclick = () => speakWord(item);
+    list.appendChild(b);
+  });
+  const r = document.createElement("div"); r.className = "row"; r.style.marginTop = "16px"; dictBox.appendChild(r);
+  mkBtn(r, "再考一次", "primary", startDict);
+  say("對答案囉！錯的字多聽幾次", "happy");
+}
+
 setLesson(0);
+
 </script>
 </body>
 </html>
