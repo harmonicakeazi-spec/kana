@@ -1138,7 +1138,11 @@ window.SND_APP={
 // ===== 課程：每五字一課 =====
 const KANA = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
 const LESSONS = [];
-for (let i = 0; i < KANA.length; i += 5) LESSONS.push([...KANA.slice(i, i + 5)]);
+// 每課的字（第 8 課只有や行三個字）
+["あいうえお", "かきくけこ", "さしすせそ", "たちつてと", "なにぬねの",
+ "はひふへほ", "まみむめも", "やゆよ", "らりるれろ", "わをん"].forEach(x => LESSONS.push([...x]));
+const LESSON_OF = {};
+LESSONS.forEach((ks, i) => ks.forEach(k => LESSON_OF[k] = i));
 
 const ROMAJI = {
   あ:"a", い:"i", う:"u", え:"e", お:"o", か:"ka", き:"ki", く:"ku", け:"ke", こ:"ko",
@@ -1206,7 +1210,7 @@ function pitchHTML(w) {
   }).join("");
 }
 
-const lessonOf = w => Math.max(...[...w].map(c => Math.floor(KANA.indexOf(c) / 5)));
+const lessonOf = w => Math.max(...[...w].map(c => LESSON_OF[c]));
 const WORD_LESSON = LESSONS.map(() => []);
 WORDS.forEach(item => {
   const [w] = item;
